@@ -18,7 +18,8 @@
 #     configure_package_config_file(<input> <output> INSTALL_DESTINATION <path>
 #                                                    [PATH_VARS <var1> <var2> ... <varN>]
 #                                                    [NO_SET_AND_CHECK_MACRO]
-#                                                    [NO_CHECK_REQUIRED_COMPONENTS_MACRO])
+#                                                    [NO_CHECK_REQUIRED_COMPONENTS_MACRO]
+#                                                    [BUILD_TREE])
 #
 #
 # ``configure_package_config_file()`` should be used instead of the plain
@@ -76,6 +77,12 @@
 # relative and also for absolute locations.  For absolute locations it works
 # only if the absolute location is a subdirectory of
 # :variable:`CMAKE_INSTALL_PREFIX`.
+#
+# When generating a FooConfig.cmake file to use your package from the build
+# tree the option ``BUILD_TREE`` should be passed, in order to consider
+# paths that are not absolute as relative to the
+# :cmake:variable:`CMAKE_BINARY_DIR` directory instead of relative to the
+# :cmake:variable:`CMAKE_INSTALL_PREFIX` directory.
 #
 # By default ``configure_package_config_file`` also generates two helper macros,
 # ``set_and_check()`` and ``check_required_components()`` into the
@@ -209,7 +216,7 @@ macro(WRITE_BASIC_PACKAGE_VERSION_FILE)
 endmacro()
 
 function(CONFIGURE_PACKAGE_CONFIG_FILE _inputFile _outputFile)
-  set(options NO_SET_AND_CHECK_MACRO NO_CHECK_REQUIRED_COMPONENTS_MACRO)
+  set(options NO_SET_AND_CHECK_MACRO NO_CHECK_REQUIRED_COMPONENTS_MACRO BUILD_TREE)
   set(oneValueArgs INSTALL_DESTINATION )
   set(multiValueArgs PATH_VARS )
 
@@ -225,19 +232,31 @@ function(CONFIGURE_PACKAGE_CONFIG_FILE _inputFile _outputFile)
 
   if(IS_ABSOLUTE "${CCF_INSTALL_DESTINATION}")
     set(absInstallDir "${CCF_INSTALL_DESTINATION}")
+  elseif(CCF_BUILD_TREE)
+    set(absInstallDir "${CMAKE_BINARY_DIR}/${CCF_INSTALL_DESTINATION}")
   else()
     set(absInstallDir "${CMAKE_INSTALL_PREFIX}/${CCF_INSTALL_DESTINATION}")
   endif()
 
-  file(RELATIVE_PATH PACKAGE_RELATIVE_PATH "${absInstallDir}" "${CMAKE_INSTALL_PREFIX}" )
+
+  if(CCF_BUILD_TREE)
+    file(RELATIVE_PATH PACKAGE_RELATIVE_PATH "${absInstallDir}" "${CMAKE_BINARY_DIR}" )
+  else()
+    file(RELATIVE_PATH PACKAGE_RELATIVE_PATH "${absInstallDir}" "${CMAKE_INSTALL_PREFIX}" )
+  endif()
 
   foreach(var ${CCF_PATH_VARS})
     if(NOT DEFINED ${var})
       message(FATAL_ERROR "Variable ${var} does not exist")
     else()
       if(IS_ABSOLUTE "${${var}}")
-        string(REPLACE "${CMAKE_INSTALL_PREFIX}" "\${PACKAGE_PREFIX_DIR}"
-                        PACKAGE_${var} "${${var}}")
+        if(CCF_BUILD_TREE)
+          string(REPLACE "${CMAKE_BINARY_DIR}" "\${PACKAGE_PREFIX_DIR}"
+                          PACKAGE_${var} "${${var}}")
+        else()
+          string(REPLACE "${CMAKE_INSTALL_PREFIX}" "\${PACKAGE_PREFIX_DIR}"
+                          PACKAGE_${var} "${${var}}")
+        endif()
       else()
         set(PACKAGE_${var} "\${PACKAGE_PREFIX_DIR}/${${var}}")
       endif()
