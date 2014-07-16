@@ -1502,7 +1502,8 @@ ${CMake_BINARY_DIR}/bin/cmake -DDIR=dev -P ${CMake_SOURCE_DIR}/Utilities/Release
       )
   endif()
 
-  if(MAKE_SUPPORTS_SPACES AND NOT CMAKE_GENERATOR STREQUAL "Xcode")
+  if(MAKE_SUPPORTS_SPACES AND
+     NOT (CMAKE_GENERATOR STREQUAL "Xcode" AND XCODE_VERSION VERSION_LESS 3))
     add_test(SubDirSpaces ${CMAKE_CTEST_COMMAND}
       --build-and-test
       "${CMake_SOURCE_DIR}/Tests/SubDirSpaces"
