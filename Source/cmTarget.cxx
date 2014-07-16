@@ -6197,7 +6197,6 @@ cmTargetInternals::ComputeLinkInterfaceLibraries(
       // Compare the link implementation fallback link interface to the
       // preferred new link interface property and warn if different.
       std::vector<cmLinkItem> ifaceLibs;
-      if(const char* newExplicitLibraries = this->GetProperty(newProp))
       if(const char* newExplicitLibraries = thisTarget->GetProperty(newProp))
         {
         thisTarget->ExpandLinkItems(newProp, newExplicitLibraries, config,
