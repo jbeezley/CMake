@@ -36,7 +36,7 @@ public:
     if(p[0] == '\0')
       {
       return new cmGlobalVisualStudio8Generator(
-        name, "", "");
+        name, "");
       }
 
     if(p[0] != ' ')
@@ -49,7 +49,7 @@ public:
     if(!strcmp(p, "Win64"))
       {
       return new cmGlobalVisualStudio8Generator(
-        name, "x64", "CMAKE_FORCE_WIN64");
+        name, "x64");
       }
 
     cmVisualStudioWCEPlatformParser parser(p);
@@ -60,7 +60,7 @@ public:
       }
 
     cmGlobalVisualStudio8Generator* ret = new cmGlobalVisualStudio8Generator(
-      name, p, "");
+      name, p);
     ret->WindowsCEVersion = parser.GetOSVersion();
     return ret;
   }
@@ -93,17 +93,11 @@ cmGlobalGeneratorFactory* cmGlobalVisualStudio8Generator::NewFactory()
 
 //----------------------------------------------------------------------------
 cmGlobalVisualStudio8Generator::cmGlobalVisualStudio8Generator(
-  const std::string& name, const std::string& platformName,
-  const std::string& additionalPlatformDefinition)
+  const std::string& name, const std::string& platformName)
   : cmGlobalVisualStudio71Generator(platformName)
 {
   this->ProjectConfigurationSectionName = "ProjectConfigurationPlatforms";
   this->Name = name;
-
-  if (!additionalPlatformDefinition.empty())
-    {
-    this->AdditionalPlatformDefinition = additionalPlatformDefinition;
-    }
 }
 
 //----------------------------------------------------------------------------
@@ -139,10 +133,17 @@ cmLocalGenerator *cmGlobalVisualStudio8Generator::CreateLocalGenerator()
 }
 
 //----------------------------------------------------------------------------
+void cmGlobalVisualStudio8Generator
+::EnableLanguage(std::vector<std::string>const &  lang,
+                 cmMakefile *mf, bool optional)
+{
+  this->AddPlatformDefinitions(mf);
+  cmGlobalVisualStudio7Generator::EnableLanguage(lang, mf, optional);
+}
+
+//----------------------------------------------------------------------------
 void cmGlobalVisualStudio8Generator::AddPlatformDefinitions(cmMakefile* mf)
 {
-  cmGlobalVisualStudio71Generator::AddPlatformDefinitions(mf);
-
   if(this->TargetsWindowsCE())
   {
     mf->AddDefinition("CMAKE_VS_WINCE_VERSION",
