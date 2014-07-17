@@ -5076,7 +5076,7 @@ PropertyType checkInterfacePropertyCompatibility(cmTarget const* tgt,
                                           CompatibleType t,
                                           PropertyType *)
 {
-  PropertyType propContent = getTypedProperty<PropertyType>(tgt, p.c_str(),
+  PropertyType propContent = getTypedProperty<PropertyType>(tgt, p,
                                                             0);
   const bool explicitlySet = tgt->GetProperties()
                                   .find(p)
@@ -5130,7 +5130,7 @@ PropertyType checkInterfacePropertyCompatibility(cmTarget const* tgt,
                             != theTarget->GetProperties().end();
     PropertyType ifacePropContent =
                     getTypedProperty<PropertyType>(theTarget,
-                              interfaceProperty.c_str(), 0);
+                              interfaceProperty, 0);
 
     std::string reportEntry;
     if (ifaceIsSet)
