@@ -3271,12 +3271,12 @@ const char *cmTarget::GetProperty(const std::string& prop,
               }
             if (!noMessage)
               {
-              e << "Target \"" << this->Name << "\" contains $<TARGET_OBJECTS> "
-              "generator expression in its sources list.  This content was not "
-              "previously part of the SOURCES property when that property was "
-              "read at configure time.  Code reading that property needs to be "
-              "adapted to ignore the generator expression using the "
-              "string(GENEX_STRIP) command.";
+              e << "Target \"" << this->Name << "\" contains "
+              "$<TARGET_OBJECTS> generator expression in its sources list.  "
+              "This content was not previously part of the SOURCES property "
+              "when that property was read at configure time.  Code reading "
+              "that property needs to be adapted to ignore the generator "
+              "expression using the string(GENEX_STRIP) command.";
               context->IssueMessage(messageType, e.str());
               }
             if (addContent)
@@ -5089,7 +5089,7 @@ PropertyType checkInterfacePropertyCompatibility(cmTarget const* tgt,
                                           CompatibleType t,
                                           PropertyType *)
 {
-  PropertyType propContent = getTypedProperty<PropertyType>(tgt, p.c_str(),
+  PropertyType propContent = getTypedProperty<PropertyType>(tgt, p,
                                                             0);
   const bool explicitlySet = tgt->GetProperties()
                                   .find(p)
@@ -5143,7 +5143,7 @@ PropertyType checkInterfacePropertyCompatibility(cmTarget const* tgt,
                             != theTarget->GetProperties().end();
     PropertyType ifacePropContent =
                     getTypedProperty<PropertyType>(theTarget,
-                              interfaceProperty.c_str(), 0);
+                              interfaceProperty, 0);
 
     std::string reportEntry;
     if (ifaceIsSet)
