@@ -3260,12 +3260,12 @@ const char *cmTarget::GetProperty(const std::string& prop,
               }
             if (!noMessage)
               {
-              e << "Target \"" << this->Name << "\" contains $<TARGET_OBJECTS> "
-              "generator expression in its sources list.  This content was not "
-              "previously part of the SOURCES property when that property was "
-              "read at configure time.  Code reading that property needs to be "
-              "adapted to ignore the generator expression using the "
-              "string(GENEX_STRIP) command.";
+              e << "Target \"" << this->Name << "\" contains "
+              "$<TARGET_OBJECTS> generator expression in its sources list.  "
+              "This content was not previously part of the SOURCES property "
+              "when that property was read at configure time.  Code reading "
+              "that property needs to be adapted to ignore the generator "
+              "expression using the string(GENEX_STRIP) command.";
               context->IssueMessage(messageType, e.str());
               }
             if (addContent)
