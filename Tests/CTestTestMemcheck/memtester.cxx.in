@@ -1,6 +1,7 @@
 #include <cmSystemTools.h>
 #include <cmsys/Encoding.hxx>
 #include <string>
+#include <locale.h>
 
 #define RETVAL @_retval@
 
