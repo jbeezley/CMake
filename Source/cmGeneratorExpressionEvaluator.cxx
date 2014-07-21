@@ -849,6 +849,10 @@ getLinkedTargetsContent(
       {
       context->HadContextSensitiveCondition = true;
       }
+    if (cge->GetHadHeadSensitiveCondition())
+      {
+      context->HadHeadSensitiveCondition = true;
+      }
     }
   linkedTargetsContent =
     cmGeneratorExpression::StripEmptyListElements(linkedTargetsContent);
@@ -880,6 +884,10 @@ static const struct TargetPropertyNode : public cmGeneratorExpressionNode
     cmTarget const* target = context->HeadTarget;
     std::string propertyName = *parameters.begin();
 
+    if (parameters.size() == 1)
+      {
+      context->HadHeadSensitiveCondition = true;
+      }
     if (!target && parameters.size() == 1)
       {
       reportError(context, content->GetOriginalExpression(),
@@ -1322,6 +1330,7 @@ static const struct CompileFeaturesNode : public cmGeneratorExpressionNode
           "not be used with add_custom_command or add_custom_target.");
       return std::string();
       }
+    context->HadHeadSensitiveCondition = true;
 
     typedef std::map<std::string, std::vector<std::string> > LangMap;
     static LangMap availableFeatures;
@@ -1455,6 +1464,7 @@ static const struct TargetPolicyNode : public cmGeneratorExpressionNode
       }
 
     context->HadContextSensitiveCondition = true;
+    context->HadHeadSensitiveCondition = true;
 
     for (size_t i = 1; i < cmArraySize(targetPolicyWhitelist); ++i)
       {
