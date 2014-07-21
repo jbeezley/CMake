@@ -1,7 +1,7 @@
 COMPILE_DEFINITIONS_<CONFIG>
 ----------------------------
 
-Ignored. See CMake Policy :policy:`CMP0043`.
+Ignored.  See CMake Policy :policy:`CMP0043`.
 
 Per-configuration preprocessor definitions in a directory.
 

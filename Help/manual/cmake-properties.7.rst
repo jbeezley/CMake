@@ -7,12 +7,8 @@ cmake-properties(7)
 
    .. contents::
 
-Normal Properties
-=================
-These properties may be used freely in CMake projects.
-
 Properties of Global Scope
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
 .. toctree::
    :maxdepth: 1
@@ -46,7 +42,7 @@ Properties of Global Scope
    /prop_gbl/USE_FOLDERS
 
 Properties on Directories
-^^^^^^^^^^^^^^^^^^^^^^^^^
+=========================
 
 .. toctree::
    :maxdepth: 1
@@ -77,7 +73,7 @@ Properties on Directories
    /prop_dir/VS_GLOBAL_SECTION_PRE_section
 
 Properties on Targets
-^^^^^^^^^^^^^^^^^^^^^
+=====================
 
 .. toctree::
    :maxdepth: 1
@@ -245,7 +241,7 @@ Properties on Targets
    /prop_tgt/XCODE_ATTRIBUTE_an-attribute
 
 Properties on Tests
-^^^^^^^^^^^^^^^^^^^
+===================
 
 .. toctree::
    :maxdepth: 1
@@ -269,7 +265,7 @@ Properties on Tests
    /prop_test/WORKING_DIRECTORY
 
 Properties on Source Files
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+==========================
 
 .. toctree::
    :maxdepth: 1
@@ -296,7 +292,7 @@ Properties on Source Files
    /prop_sf/XCODE_LAST_KNOWN_FILE_TYPE
 
 Properties on Cache Entries
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+===========================
 
 .. toctree::
    :maxdepth: 1
@@ -309,7 +305,7 @@ Properties on Cache Entries
    /prop_cache/VALUE
 
 Properties on Installed Files
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+=============================
 
 .. toctree::
    :maxdepth: 1
@@ -318,14 +314,8 @@ Properties on Installed Files
    /prop_inst/CPACK_PERMANENT.rst
 
 
-Deprecated Properties
-=====================
-
-These properties are available only for compatibility with older
-versions of CMake.  Do not use them in new code.
-
-Properties on Directories
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Deprecated Properties on Directories
+=====================================
 
 .. toctree::
    :maxdepth: 1
@@ -333,8 +323,8 @@ Properties on Directories
    /prop_dir/COMPILE_DEFINITIONS_CONFIG
 
 
-Properties on Targets
-^^^^^^^^^^^^^^^^^^^^^
+Deprecated Properties on Targets
+================================
 
 .. toctree::
    :maxdepth: 1
@@ -344,8 +334,8 @@ Properties on Targets
    /prop_tgt/PRE_INSTALL_SCRIPT
 
 
-Properties on Source Files
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+Deprecated Properties on Source Files
+=====================================
 
 .. toctree::
    :maxdepth: 1
