@@ -207,9 +207,7 @@ Properties on Targets
    /prop_tgt/PDB_OUTPUT_DIRECTORY_CONFIG
    /prop_tgt/PDB_OUTPUT_DIRECTORY
    /prop_tgt/POSITION_INDEPENDENT_CODE
-   /prop_tgt/POST_INSTALL_SCRIPT
    /prop_tgt/PREFIX
-   /prop_tgt/PRE_INSTALL_SCRIPT
    /prop_tgt/PRIVATE_HEADER
    /prop_tgt/PROJECT_LABEL
    /prop_tgt/PUBLIC_HEADER
@@ -342,6 +340,8 @@ Properties on Targets
    :maxdepth: 1
 
    /prop_tgt/COMPILE_DEFINITIONS_CONFIG
+   /prop_tgt/POST_INSTALL_SCRIPT
+   /prop_tgt/PRE_INSTALL_SCRIPT
 
 
 Properties on Source Files
