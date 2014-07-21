@@ -97,7 +97,6 @@ const char *cmCompiledGeneratorExpression::Evaluate(
   context.Quiet = quiet;
   context.HadError = false;
   context.HadContextSensitiveCondition = false;
-  context.HadHeadSensitiveCondition = false;
   context.HeadTarget = headTarget;
   context.EvaluateForBuildsystem = this->EvaluateForBuildsystem;
   context.CurrentTarget = currentTarget ? currentTarget : headTarget;
@@ -125,7 +124,6 @@ const char *cmCompiledGeneratorExpression::Evaluate(
   if (!context.HadError)
     {
     this->HadContextSensitiveCondition = context.HadContextSensitiveCondition;
-    this->HadHeadSensitiveCondition = context.HadHeadSensitiveCondition;
     }
 
   this->DependTargets = context.DependTargets;
@@ -139,7 +137,6 @@ cmCompiledGeneratorExpression::cmCompiledGeneratorExpression(
               const std::string& input)
   : Backtrace(backtrace), Input(input),
     HadContextSensitiveCondition(false),
-    HadHeadSensitiveCondition(false),
     EvaluateForBuildsystem(false)
 {
   cmGeneratorExpressionLexer l;
