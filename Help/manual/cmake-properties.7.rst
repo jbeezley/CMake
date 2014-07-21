@@ -7,8 +7,12 @@ cmake-properties(7)
 
    .. contents::
 
+Normal Properties
+=================
+These properties may be used freely in CMake projects.
+
 Properties of Global Scope
-==========================
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
@@ -42,7 +46,7 @@ Properties of Global Scope
    /prop_gbl/USE_FOLDERS
 
 Properties on Directories
-=========================
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
@@ -51,7 +55,6 @@ Properties on Directories
    /prop_dir/CACHE_VARIABLES
    /prop_dir/CLEAN_NO_CUSTOM
    /prop_dir/CMAKE_CONFIGURE_DEPENDS
-   /prop_dir/COMPILE_DEFINITIONS_CONFIG
    /prop_dir/COMPILE_DEFINITIONS
    /prop_dir/COMPILE_OPTIONS
    /prop_dir/DEFINITIONS
@@ -74,7 +77,7 @@ Properties on Directories
    /prop_dir/VS_GLOBAL_SECTION_PRE_section
 
 Properties on Targets
-=====================
+^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
@@ -101,7 +104,6 @@ Properties on Targets
    /prop_tgt/COMPATIBLE_INTERFACE_NUMBER_MAX
    /prop_tgt/COMPATIBLE_INTERFACE_NUMBER_MIN
    /prop_tgt/COMPATIBLE_INTERFACE_STRING
-   /prop_tgt/COMPILE_DEFINITIONS_CONFIG
    /prop_tgt/COMPILE_DEFINITIONS
    /prop_tgt/COMPILE_FEATURES
    /prop_tgt/COMPILE_FLAGS
@@ -205,9 +207,7 @@ Properties on Targets
    /prop_tgt/PDB_OUTPUT_DIRECTORY_CONFIG
    /prop_tgt/PDB_OUTPUT_DIRECTORY
    /prop_tgt/POSITION_INDEPENDENT_CODE
-   /prop_tgt/POST_INSTALL_SCRIPT
    /prop_tgt/PREFIX
-   /prop_tgt/PRE_INSTALL_SCRIPT
    /prop_tgt/PRIVATE_HEADER
    /prop_tgt/PROJECT_LABEL
    /prop_tgt/PUBLIC_HEADER
@@ -245,7 +245,7 @@ Properties on Targets
    /prop_tgt/XCODE_ATTRIBUTE_an-attribute
 
 Properties on Tests
-===================
+^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
@@ -269,7 +269,7 @@ Properties on Tests
    /prop_test/WORKING_DIRECTORY
 
 Properties on Source Files
-==========================
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
@@ -277,7 +277,6 @@ Properties on Source Files
    /prop_sf/ABSTRACT
    /prop_sf/AUTOUIC_OPTIONS
    /prop_sf/AUTORCC_OPTIONS
-   /prop_sf/COMPILE_DEFINITIONS_CONFIG
    /prop_sf/COMPILE_DEFINITIONS
    /prop_sf/COMPILE_FLAGS
    /prop_sf/EXTERNAL_OBJECT
@@ -297,7 +296,7 @@ Properties on Source Files
    /prop_sf/XCODE_LAST_KNOWN_FILE_TYPE
 
 Properties on Cache Entries
-===========================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
@@ -310,10 +309,45 @@ Properties on Cache Entries
    /prop_cache/VALUE
 
 Properties on Installed Files
-=============================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. toctree::
    :maxdepth: 1
 
    /prop_inst/CPACK_NEVER_OVERWRITE.rst
    /prop_inst/CPACK_PERMANENT.rst
+
+
+Deprecated Properties
+=====================
+
+These properties are available only for compatibility with older
+versions of CMake.  Do not use them in new code.
+
+Properties on Directories
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   /prop_dir/COMPILE_DEFINITIONS_CONFIG
+
+
+Properties on Targets
+^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   /prop_tgt/COMPILE_DEFINITIONS_CONFIG
+   /prop_tgt/POST_INSTALL_SCRIPT
+   /prop_tgt/PRE_INSTALL_SCRIPT
+
+
+Properties on Source Files
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. toctree::
+   :maxdepth: 1
+
+   /prop_sf/COMPILE_DEFINITIONS_CONFIG
