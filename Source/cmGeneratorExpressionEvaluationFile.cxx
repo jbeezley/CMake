@@ -36,7 +36,7 @@ cmGeneratorExpressionEvaluationFile::cmGeneratorExpressionEvaluationFile(
 //----------------------------------------------------------------------------
 void cmGeneratorExpressionEvaluationFile::Generate(const std::string& config,
               cmCompiledGeneratorExpression* inputExpression,
-              std::map<std::string, std::string> &outputFiles)
+              std::map<std::string, std::string> &outputFiles, mode_t perm)
 {
   std::string rawCondition = this->Condition->GetInput();
   if (!rawCondition.empty())
@@ -77,17 +77,24 @@ void cmGeneratorExpressionEvaluationFile::Generate(const std::string& config,
     return;
     }
 
+  this->Makefile->AddCMakeOutputFile(outputFileName.c_str());
   this->Files.push_back(outputFileName);
   outputFiles[outputFileName] = outputContent;
 
   cmGeneratedFileStream fout(outputFileName.c_str());
   fout.SetCopyIfDifferent(true);
   fout << outputContent;
+  if (perm)
+    {
+    fout.close();
+    cmSystemTools::SetPermissions(outputFileName.c_str(), perm);
+    }
 }
 
 //----------------------------------------------------------------------------
 void cmGeneratorExpressionEvaluationFile::Generate()
 {
+  mode_t perm = 0;
   std::string inputContent;
   if (this->InputIsContent)
     {
@@ -95,6 +102,9 @@ void cmGeneratorExpressionEvaluationFile::Generate()
     }
   else
     {
+    cmSystemTools::GetPermissions(this->Input.c_str(), perm);
+    this->Makefile->AddCMakeDependFile(this->Input.c_str());
+
     cmsys::ifstream fin(this->Input.c_str());
     if(!fin)
       {
@@ -131,7 +141,7 @@ void cmGeneratorExpressionEvaluationFile::Generate()
   for(std::vector<std::string>::const_iterator li = allConfigs.begin();
       li != allConfigs.end(); ++li)
     {
-    this->Generate(*li, inputExpression.get(), outputFiles);
+    this->Generate(*li, inputExpression.get(), outputFiles, perm);
     if(cmSystemTools::GetFatalErrorOccured())
       {
       return;
