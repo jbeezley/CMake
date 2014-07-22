@@ -95,6 +95,8 @@ void cmGeneratorExpressionEvaluationFile::Generate()
     }
   else
     {
+    this->Makefile->AddCMakeDependFile(this->Input.c_str());
+
     cmsys::ifstream fin(this->Input.c_str());
     if(!fin)
       {
