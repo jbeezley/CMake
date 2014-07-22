@@ -15,7 +15,6 @@
 #include "cmGeneratorExpressionParser.h"
 #include "cmGeneratorExpressionDAGChecker.h"
 #include "cmGeneratorExpression.h"
-#include "cmGlobalGenerator.h"
 #include "cmLocalGenerator.h"
 #include "cmSourceFile.h"
 
@@ -689,11 +688,7 @@ static const struct ConfigurationNode : public cmGeneratorExpressionNode
                        const GeneratorExpressionContent *,
                        cmGeneratorExpressionDAGChecker *) const
   {
-    if (context->Makefile->GetLocalGenerator()->
-                           GetGlobalGenerator()->IsMultiConfig())
-      {
-      context->HadContextSensitiveCondition = true;
-      }
+    context->HadContextSensitiveCondition = true;
     return context->Config;
   }
 } configurationNode;
@@ -721,11 +716,7 @@ static const struct ConfigurationTestNode : public cmGeneratorExpressionNode
                   "Expression syntax not recognized.");
       return std::string();
       }
-    if (context->Makefile->GetLocalGenerator()->
-                           GetGlobalGenerator()->IsMultiConfig())
-      {
-      context->HadContextSensitiveCondition = true;
-      }
+    context->HadContextSensitiveCondition = true;
     if (context->Config.empty())
       {
       return parameters.front().empty() ? "1" : "0";
