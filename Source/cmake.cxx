@@ -355,6 +355,36 @@ bool cmake::SetCacheArgs(const std::vector<std::string>& args)
             }
           }
 
+        cmsys::RegularExpression compilerRex("^CMAKE_[a-zA-Z]+_COMPILER$");
+        if (compilerRex.find(var))
+          {
+          std::string newVal = cmSystemTools::FindProgram(value.c_str());
+          const char* existing =
+                          this->CacheManager->GetCacheValue(var.c_str());
+          if (existing && existing == newVal)
+            {
+            // Repeated invocation of cmake with arguments specifying a
+            // compiler, such as -DCMAKE_CXX_COMPILER=clang++, should not
+            // re-populate the cache with the un-resolved name.  On the
+            // first run of cmake, the CMakeDetermineCXXCompiler.cmake logic
+            // is executed and the result is resolved to a full path and
+            // cached,  On subsequent runs of cmake, we wish to avoid
+            // re-executing the CMakeDetermineCXXCompiler.cmake logic.
+            // The cmGlobalGenerator::ResolveLanguageCompiler method is
+            // responsible for ensuring that the cache is deleted if the
+            // value in the cache is changed.
+            // A scripting environment can invoke cmake on the command line
+            // with arguments specifying the compiler in a way which is
+            // intended to give reproducible results.  Ignore the value
+            // specified on the command line if it results in the same
+            // value as is already in the cache.  Otherwise,
+            // cmMakefile::AddCacheDefinition would use CollapseFullPath on
+            // the entry, incorrectly resolving 'clang++' to
+            // '<CMAKE_BUILD_DIR>/clang++', which is unlikely to exist.
+            continue;
+            }
+          }
+
         this->CacheManager->AddCacheEntry(var, value.c_str(),
           "No help, variable specified on the command line.", type);
 
