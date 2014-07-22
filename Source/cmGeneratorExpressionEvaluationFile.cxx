@@ -77,6 +77,7 @@ void cmGeneratorExpressionEvaluationFile::Generate(const std::string& config,
     return;
     }
 
+  this->Makefile->AddCMakeOutputFile(outputFileName.c_str());
   this->Files.push_back(outputFileName);
   outputFiles[outputFileName] = outputContent;
 

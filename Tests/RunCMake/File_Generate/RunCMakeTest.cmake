@@ -56,3 +56,11 @@ file(READ "${RunCMake_BINARY_DIR}/ReRunCMake-build/output_file.txt" out_content)
 if(NOT out_content STREQUAL "ChangedContent\n")
   message(SEND_ERROR "File did not change: \"${RunCMake_BINARY_DIR}/ReRunCMake-build/output_file.txt\"")
 endif()
+
+
+file(REMOVE "${RunCMake_BINARY_DIR}/ReRunCMake-build/output_file.txt")
+execute_process(COMMAND ${CMAKE_COMMAND} --build "${RunCMake_BINARY_DIR}/ReRunCMake-build/")
+
+if (NOT EXISTS "${RunCMake_BINARY_DIR}/ReRunCMake-build/output_file.txt")
+  message(SEND_ERROR "File did not re-generate: \"${RunCMake_BINARY_DIR}/ReRunCMake-build/output_file.txt\"")
+endif()
