@@ -51,7 +51,7 @@
 #endif
 
 
-#if defined(_MSC_VER) && (_MSC_VER <= 1200)
+#if defined(_MSC_VER) && (_MSC_VER < 1310)
 #  define UINT64_C(n) n ## ui64
 #endif
 
