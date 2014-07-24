@@ -1512,6 +1512,7 @@ static const struct InstallPrefixNode : public cmGeneratorExpressionNode
 class ArtifactNameTag;
 class ArtifactLinkerTag;
 class ArtifactSonameTag;
+class ArtifactPdbTag;
 
 class ArtifactPathTag;
 class ArtifactDirTag;
@@ -1552,6 +1553,21 @@ struct TargetFilesystemArtifactResultCreator<ArtifactSonameTag>
     std::string result = target->GetDirectory(context->Config);
     result += "/";
     result += target->GetSOName(context->Config);
+    return result;
+  }
+};
+
+//----------------------------------------------------------------------------
+template<>
+struct TargetFilesystemArtifactResultCreator<ArtifactPdbTag>
+{
+  static std::string Create(cmTarget* target,
+                            cmGeneratorExpressionContext *context,
+                            const GeneratorExpressionContent *)
+  {
+    std::string result = target->GetPDBDirectory(context->Config);
+    result += "/";
+    result += target->GetPDBName(context->Config);
     return result;
   }
 };
@@ -1702,6 +1718,9 @@ TargetFilesystemArtifactNodeGroup<ArtifactLinkerTag> targetLinkerNodeGroup;
 static const
 TargetFilesystemArtifactNodeGroup<ArtifactSonameTag> targetSoNameNodeGroup;
 
+static const
+TargetFilesystemArtifactNodeGroup<ArtifactPdbTag> targetPdbNodeGroup;
+
 //----------------------------------------------------------------------------
 static const
 cmGeneratorExpressionNode* GetNode(const std::string &identifier)
@@ -1729,12 +1748,15 @@ cmGeneratorExpressionNode* GetNode(const std::string &identifier)
     nodeMap["TARGET_FILE"] = &targetNodeGroup.File;
     nodeMap["TARGET_LINKER_FILE"] = &targetLinkerNodeGroup.File;
     nodeMap["TARGET_SONAME_FILE"] = &targetSoNameNodeGroup.File;
+    nodeMap["TARGET_PDB_FILE"] = &targetPdbNodeGroup.File;
     nodeMap["TARGET_FILE_NAME"] = &targetNodeGroup.FileName;
     nodeMap["TARGET_LINKER_FILE_NAME"] = &targetLinkerNodeGroup.FileName;
     nodeMap["TARGET_SONAME_FILE_NAME"] = &targetSoNameNodeGroup.FileName;
+    nodeMap["TARGET_PDB_FILE_NAME"] = &targetPdbNodeGroup.FileName;
     nodeMap["TARGET_FILE_DIR"] = &targetNodeGroup.FileDir;
     nodeMap["TARGET_LINKER_FILE_DIR"] = &targetLinkerNodeGroup.FileDir;
     nodeMap["TARGET_SONAME_FILE_DIR"] = &targetSoNameNodeGroup.FileDir;
+    nodeMap["TARGET_PDB_FILE_DIR"] = &targetPdbNodeGroup.FileDir;
     nodeMap["STREQUAL"] = &strEqualNode;
     nodeMap["EQUAL"] = &equalNode;
     nodeMap["LOWER_CASE"] = &lowerCaseNode;
