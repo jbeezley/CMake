@@ -1563,7 +1563,7 @@ struct TargetFilesystemArtifactResultCreator<ArtifactPdbTag>
 {
   static std::string Create(cmTarget* target,
                             cmGeneratorExpressionContext *context,
-                            const GeneratorExpressionContent *content)
+                            const GeneratorExpressionContent *)
   {
     std::string result = target->GetPDBDirectory(context->Config);
     result += "/";
