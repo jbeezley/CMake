@@ -148,6 +148,12 @@ than 4.2.0.
   Name of file with soname (.so.3).
 ``$<TARGET_SONAME_FILE_DIR:tgt>``
   Directory of with soname (.so.3).
+``$<TARGET_PDB_FILE:tgt>``
+  Full path to program database file (.pdb) where ``tgt`` is the name of a target.
+``$<TARGET_PDB_FILE_NAME:tgt>``
+  Name of program database file (.pdb).
+``$<TARGET_PDB_FILE_DIR:tgt>``
+  Directory of program database file (.pdb).
 ``$<TARGET_PROPERTY:tgt,prop>``
   Value of the property ``prop`` on the target ``tgt``.
 
