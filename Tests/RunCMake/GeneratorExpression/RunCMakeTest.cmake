@@ -16,3 +16,12 @@ run_cmake(NonValidTarget-C_COMPILER_VERSION)
 run_cmake(NonValidTarget-CXX_COMPILER_VERSION)
 run_cmake(NonValidTarget-TARGET_PROPERTY)
 run_cmake(NonValidTarget-TARGET_POLICY)
+
+if(RunCMake_CXX_COMPILER_ID MATCHES "MSVC")
+  run_cmake(NonValidTarget-TARGET_PDB_FILE)
+  run_cmake(ValidTarget-TARGET_PDB_FILE)
+endif()
+
+if(NOT WIN32)
+  run_cmake(NonValidCompiler-TARGET_PDB_FILE)
+endif()

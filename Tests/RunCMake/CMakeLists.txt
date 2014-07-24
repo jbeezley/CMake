@@ -7,6 +7,7 @@ macro(add_RunCMake_test test)
     -DRunCMake_GENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}
     -DRunCMake_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/${test}
     -DRunCMake_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}
+    -DRunCMake_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}
     ${${test}_ARGS}
     -P "${CMAKE_CURRENT_SOURCE_DIR}/${test}/RunCMakeTest.cmake"
     )
