@@ -1703,6 +1703,10 @@ struct TargetFilesystemArtifact : public cmGeneratorExpressionNode
 template<typename ArtifactT>
 struct TargetFilesystemArtifactNodeGroup
 {
+  TargetFilesystemArtifactNodeGroup()
+    {
+    }
+
   TargetFilesystemArtifact<ArtifactT, ArtifactPathTag> File;
   TargetFilesystemArtifact<ArtifactT, ArtifactNameTag> FileName;
   TargetFilesystemArtifact<ArtifactT, ArtifactDirTag> FileDir;
