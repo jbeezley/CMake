@@ -1565,11 +1565,14 @@ struct TargetFilesystemArtifactResultCreator<ArtifactPdbTag>
                             cmGeneratorExpressionContext *context,
                             const GeneratorExpressionContent *content)
   {
-    if(!target->IsDLLPlatform())
+    std::string language = target->GetLinkerLanguage(context->Config);
+
+    std::string pdbSupportVar = "CMAKE_" + language + "_LINKER_SUPPORTS_PDB";
+
+    if(!context->Makefile->IsOn(pdbSupportVar))
       {
       ::reportError(context, content->GetOriginalExpression(),
-                    "TARGET_PDB_FILE is only allowed "
-                    "for DLL target platforms.");
+                    "TARGET_PDB_FILE is not supported by the target linker.");
       return std::string();
       }
 
