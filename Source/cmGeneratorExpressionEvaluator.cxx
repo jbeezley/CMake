@@ -1563,8 +1563,28 @@ struct TargetFilesystemArtifactResultCreator<ArtifactPdbTag>
 {
   static std::string Create(cmTarget* target,
                             cmGeneratorExpressionContext *context,
-                            const GeneratorExpressionContent *)
+                            const GeneratorExpressionContent *content)
   {
+    if(!target->IsDLLPlatform())
+      {
+      ::reportError(context, content->GetOriginalExpression(),
+                    "TARGET_PDB_FILE is only allowed "
+                    "for DLL target platforms.");
+      return std::string();
+      }
+
+    cmTarget::TargetType targetType = target->GetType();
+
+    if(targetType != cmTarget::SHARED_LIBRARY &&
+       targetType != cmTarget::MODULE_LIBRARY &&
+       targetType != cmTarget::EXECUTABLE)
+      {
+      ::reportError(context, content->GetOriginalExpression(),
+                    "TARGET_PDB_FILE is allowed only for "
+                    "targets with linker created artifacts.");
+      return std::string();
+      }
+
     std::string result = target->GetPDBDirectory(context->Config);
     result += "/";
     result += target->GetPDBName(context->Config);
