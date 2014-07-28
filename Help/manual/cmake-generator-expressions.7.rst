@@ -149,11 +149,16 @@ than 4.2.0.
 ``$<TARGET_SONAME_FILE_DIR:tgt>``
   Directory of with soname (.so.3).
 ``$<TARGET_PDB_FILE:tgt>``
-  Full path to program database file (.pdb) where ``tgt`` is the name of a target.
+  Full path to the linker generated program database file (.pdb)
+  where ``tgt`` is the name of a target.
+
+  See also the :prop_tgt:`PDB_NAME` and :prop_tgt:`PDB_OUTPUT_DIRECTORY`
+  target properties and their configuration specific variants
+  :prop_tgt:`PDB_NAME_<CONFIG>` and :prop_tgt:`PDB_OUTPUT_DIRECTORY_<CONFIG>`.
 ``$<TARGET_PDB_FILE_NAME:tgt>``
-  Name of program database file (.pdb).
+  Name of the linker generated program database file (.pdb).
 ``$<TARGET_PDB_FILE_DIR:tgt>``
-  Directory of program database file (.pdb).
+  Directory of the linker generated program database file (.pdb).
 ``$<TARGET_PROPERTY:tgt,prop>``
   Value of the property ``prop`` on the target ``tgt``.
 
