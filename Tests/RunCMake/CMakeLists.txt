@@ -7,7 +7,6 @@ macro(add_RunCMake_test test)
     -DRunCMake_GENERATOR_TOOLSET=${CMAKE_GENERATOR_TOOLSET}
     -DRunCMake_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}/${test}
     -DRunCMake_BINARY_DIR=${CMAKE_CURRENT_BINARY_DIR}/${test}
-    -DRunCMake_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}
     ${${test}_ARGS}
     -P "${CMAKE_CURRENT_SOURCE_DIR}/${test}/RunCMakeTest.cmake"
     )
@@ -20,6 +19,10 @@ endif()
 if(XCODE_VERSION AND "${XCODE_VERSION}" VERSION_LESS 2)
   set(TargetSources_ARGS -DXCODE_BELOW_2=1)
   set(File_Generate_ARGS -DXCODE_BELOW_2=1)
+endif()
+
+if(MSVC)
+  set(GeneratorExpression_ARGS -DLINKER_SUPPORTS_PDB=1)
 endif()
 
 add_RunCMake_test(CMP0019)
