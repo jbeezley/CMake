@@ -21,3 +21,7 @@ if(RunCMake_CXX_COMPILER_ID MATCHES "MSVC")
   run_cmake(NonValidTarget-TARGET_PDB_FILE)
   run_cmake(ValidTarget-TARGET_PDB_FILE)
 endif()
+
+if(NOT WIN32)
+  run_cmake(NonValidCompiler-TARGET_PDB_FILE)
+endif()
