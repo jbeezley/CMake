@@ -21,7 +21,7 @@ if(XCODE_VERSION AND "${XCODE_VERSION}" VERSION_LESS 2)
   set(File_Generate_ARGS -DXCODE_BELOW_2=1)
 endif()
 
-if(MSVC)
+if(WIN32 AND CMAKE_C_COMPILER_ID MATCHES "MSVC|Intel")
   set(GeneratorExpression_ARGS -DLINKER_SUPPORTS_PDB=1)
 endif()
 
