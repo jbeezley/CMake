@@ -23,7 +23,7 @@ endif()
 
 # Test MSVC for older host CMake versions, and test
 # WIN32/CMAKE_C_COMPILER_ID to fix check on Intel for Windows.
-if(MSVC OR WIN32 AND CMAKE_C_COMPILER_ID MATCHES "MSVC|Intel")
+if(MSVC OR (WIN32 AND CMAKE_C_COMPILER_ID MATCHES "MSVC|Intel"))
   set(GeneratorExpression_ARGS -DLINKER_SUPPORTS_PDB=1)
 endif()
 
