@@ -56,7 +56,7 @@ else()
 endif()
 
 #this file has utf-8 content
-FILE(STRINGS test.utf8 infile_strings ENCODING UTF8)
+FILE(STRINGS test.utf8 infile_strings ENCODING UTF-8)
 list(LENGTH infile_strings content_len)
 if(content_len MATCHES "3")
   message("file(STRINGS) correctly read from utf8 file [${infile_strings}]")
