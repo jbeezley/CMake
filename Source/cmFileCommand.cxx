@@ -564,7 +564,7 @@ bool cmFileCommand::HandleStringsCommand(std::vector<std::string> const& args)
       }
     else if(arg_mode == arg_encoding)
       {
-      if(args[i] == "UTF8")
+      if(args[i] == "UTF-8")
         {
         utf8_encoding = true;
         }
