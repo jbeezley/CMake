@@ -682,7 +682,7 @@ bool cmFileCommand::HandleStringsCommand(std::vector<std::string> const& args)
           c = current_str[current_str.size() - 1 - j];
           fin.putback(c);
           }
-        current_str.clear();
+        current_str = "";
         }
       }
 
