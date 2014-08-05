@@ -1,7 +1,5 @@
 
 #include <QObject>
-#include "AnObject.h"
-#include "OtherObject.h"
 
 class SomeObject : public QObject
 {
@@ -16,7 +14,5 @@ public:
 
 int main(int argc, char **argv)
 {
-  AnObject a;
-  OtherObject o;
   return 0;
 }

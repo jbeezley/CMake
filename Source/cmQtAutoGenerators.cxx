@@ -1830,57 +1830,30 @@ cmQtAutoGenerators::SearchHeadersForCppFile(const std::string& absFilename,
   const std::string basename =
               cmsys::SystemTools::GetFilenameWithoutLastExtension(absFilename);
   const std::string absPath = cmsys::SystemTools::GetFilenamePath(
-                   cmsys::SystemTools::GetRealPath(absFilename.c_str()));
+                   cmsys::SystemTools::GetRealPath(absFilename.c_str())) + '/';
 
-  std::vector<std::string> incPaths;
-  incPaths.push_back(absPath);
-  cmSystemTools::ExpandListArgument(this->MocIncludesStr, incPaths);
-
-  for(std::vector<std::string>::const_iterator path = incPaths.begin();
-      path != incPaths.end();
-      ++path)
-  {
-    bool found = false;
-    for(std::vector<std::string>::const_iterator ext =
-                   headerExtensions.begin();
-        ext != headerExtensions.end();
-        ++ext)
+  for(std::vector<std::string>::const_iterator ext = headerExtensions.begin();
+      ext != headerExtensions.end();
+      ++ext)
     {
-      const std::string headerName = (*path) + "/" + basename + "." + (*ext);
-
-      if (cmsys::SystemTools::FileExists(headerName.c_str()))
+    const std::string headerName = absPath + basename + "." + (*ext);
+    if (cmsys::SystemTools::FileExists(headerName.c_str()))
       {
-        absHeaders.insert(headerName);
-        found = true;
-        break;
+      absHeaders.insert(headerName);
+      break;
       }
     }
-    if (found)
-      break;
-  }
-  for(std::vector<std::string>::const_iterator path = incPaths.begin();
-      path != incPaths.end();
-      ++path)
-  {
-    bool found = false;
-    for(std::vector<std::string>::const_iterator ext =
-                   headerExtensions.begin();
-        ext != headerExtensions.end();
-        ++ext)
+  for(std::vector<std::string>::const_iterator ext = headerExtensions.begin();
+      ext != headerExtensions.end();
+      ++ext)
     {
-      const std::string privateHeaderName = (*path) + "/" +
-        basename + "_p." + (*ext);
-
-      if (cmsys::SystemTools::FileExists(privateHeaderName.c_str()))
+    const std::string privateHeaderName = absPath+basename+"_p."+(*ext);
+    if (cmsys::SystemTools::FileExists(privateHeaderName.c_str()))
       {
-        absHeaders.insert(privateHeaderName);
-        found = true;
-        break;
+      absHeaders.insert(privateHeaderName);
+      break;
       }
     }
-    if (found)
-      break;
-  }
 
 }
 
