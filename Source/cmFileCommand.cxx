@@ -666,7 +666,7 @@ bool cmFileCommand::HandleStringsCommand(std::vector<std::string> const& args)
           c = fin.get();
           if(!fin || (c & 0xC0) != 0x80)
             {
-            fin.putback(c);
+            fin.putback(static_cast<char>(c));
             break;
             }
           }
@@ -680,7 +680,7 @@ bool cmFileCommand::HandleStringsCommand(std::vector<std::string> const& args)
         for(unsigned int j=0; j<current_str.size()-1; j++)
           {
           c = current_str[current_str.size() - 1 - j];
-          fin.putback(c);
+          fin.putback(static_cast<char>(c));
           }
         current_str = "";
         }
