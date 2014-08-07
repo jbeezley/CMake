@@ -66,7 +66,7 @@ protected: // cmCPackGenerator reimplementation
   /**
    * @brief Get Component
    * @param projectName Project name
-   * @param name Component name
+   * @param componentName Component name
    *
    * This method calls the base implementation.
    *
@@ -79,7 +79,7 @@ protected: // cmCPackGenerator reimplementation
   /**
    * @brief Get group of component
    * @param projectName Project name
-   * @param name Component group name
+   * @param groupName Component group name
    *
    * This method calls the base implementation.
    *
