@@ -78,11 +78,12 @@
 # only if the absolute location is a subdirectory of ``INSTALL_PREFIX``.
 #
 # If the ``INSTALL_PREFIX`` argument is passed, this is used as base path to
-# calculate all the relative paths.  If this argument is not passed, the
-# :variable:`CMAKE_INSTALL_PREFIX` variable will be used instead.  The default
-# value is good when generating a FooConfig.cmake file to use your package from
-# the install tree.  When generating a FooConfig.cmake file to use your package
-# from the build tree this option should be used.
+# calculate all the relative paths.  The ``<path>`` argument must be an absolute
+# path.  If this argument is not passed, the :variable:`CMAKE_INSTALL_PREFIX`
+# variable will be used instead.  The default value is good when generating a
+# FooConfig.cmake file to use your package from the install tree.  When
+# generating a FooConfig.cmake file to use your package from the build tree this
+# option should be used.
 #
 # By default ``configure_package_config_file`` also generates two helper macros,
 # ``set_and_check()`` and ``check_required_components()`` into the
@@ -231,7 +232,11 @@ function(CONFIGURE_PACKAGE_CONFIG_FILE _inputFile _outputFile)
   endif()
 
   if(DEFINED CCF_INSTALL_PREFIX)
-    set(installPrefix "${CCF_INSTALL_PREFIX}")
+    if(IS_ABSOLUTE "${CCF_INSTALL_PREFIX}")
+      set(installPrefix "${CCF_INSTALL_PREFIX}")
+    else()
+      message(FATAL_ERROR "INSTALL_PREFIX must be an absolute path")
+    endif()
   else()
     set(installPrefix "${CMAKE_INSTALL_PREFIX}")
   endif()
