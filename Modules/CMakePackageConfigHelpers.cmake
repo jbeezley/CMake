@@ -90,7 +90,7 @@
 #
 # ``set_and_check()`` should be used instead of the normal ``set()`` command for
 # setting directories and file locations.  Additionally to setting the variable
-# it also checks that the referenced file or directory actually exists and failsù
+# it also checks that the referenced file or directory actually exists and fails
 # with a ``FATAL_ERROR`` otherwise.  This makes sure that the created
 # ``FooConfig.cmake`` file does not contain wrong references.
 # When using the ``NO_SET_AND_CHECK_MACRO``, this macro is not generated
