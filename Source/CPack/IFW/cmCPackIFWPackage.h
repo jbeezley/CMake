@@ -13,9 +13,7 @@
 #ifndef cmCPackIFWPackage_h
 #define cmCPackIFWPackage_h
 
-#include <string>
-#include <vector>
-#include <set>
+#include "cmStandardIncludes.h"
 
 class cmCPackComponent;
 class cmCPackComponentGroup;

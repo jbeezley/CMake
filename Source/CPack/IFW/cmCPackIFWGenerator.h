@@ -18,8 +18,6 @@
 #include "cmCPackIFWPackage.h"
 #include "cmCPackIFWInstaller.h"
 
-#include <set>
-
 /** \class cmCPackIFWGenerator
  * \brief A generator for Qt Installer Framework tools
  *

@@ -13,8 +13,7 @@
 #ifndef cmCPackIFWInstaller_h
 #define cmCPackIFWInstaller_h
 
-#include <map>
-#include <string>
+#include "cmStandardIncludes.h"
 
 class cmCPackIFWPackage;
 class cmCPackIFWGenerator;
