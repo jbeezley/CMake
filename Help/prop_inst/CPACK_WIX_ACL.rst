@@ -1,12 +1,13 @@
 CPACK_WIX_ACL
 -------------
 
-Specifies access permissions for installed files.
+Specifies access permissions for files installed by a WiX installer.
 
 The property can contain multiple list entries,
 each of which has to match the following format.
 
 ::
+
   <user>[@<domain>]=<permission>[,<permission>]
 
 ``<user>`` and ``<domain>`` specify the windows user and domain for which the
