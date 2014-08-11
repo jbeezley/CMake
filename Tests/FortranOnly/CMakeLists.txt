@@ -43,3 +43,14 @@ add_custom_target(checksayhello ALL
   COMMAND ${CMAKE_COMMAND} -P ${FortranOnly_SOURCE_DIR}/checksayhello.cmake
   )
 add_dependencies(checksayhello sayhello)
+
+include(CheckFortranSourceCompiles)
+unset(HAVE_PRINT CACHE)
+CHECK_Fortran_SOURCE_COMPILES([[
+      PROGRAM TEST_HAVE_PRINT
+        PRINT *, 'Hello'
+      END
+]] HAVE_PRINT)
+if(NOT HAVE_PRINT)
+  message(SEND_ERROR "CHECK_Fortran_SOURCE_COMPILES for HAVE_PRINT failed!")
+endif()
