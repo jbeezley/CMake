@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8.12)
+project(VSMASM C ASM_MASM)
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
+  message(FATAL_ERROR "This test works only with i386 architecture.")
+endif()
+add_executable(VSMASM main.c foo.asm)
