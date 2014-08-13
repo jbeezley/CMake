@@ -58,6 +58,9 @@ public:
   /** Is the installed VS an Express edition?  */
   bool IsExpressEdition() const { return this->ExpressEdition; }
 
+  /** Is the Microsoft Assembler enabled?  */
+  bool IsMasmEnabled() const { return this->MasmEnabled; }
+
   /** The toolset name for the target platform.  */
   const char* GetPlatformToolset() const;
 
@@ -120,6 +123,7 @@ protected:
   bool SystemIsWindowsPhone;
   bool SystemIsWindowsStore;
   bool ExpressEdition;
+  bool MasmEnabled;
 
   bool UseFolderProperty();
 

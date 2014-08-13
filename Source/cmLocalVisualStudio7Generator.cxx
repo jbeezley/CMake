@@ -862,14 +862,6 @@ void cmLocalVisualStudio7Generator::WriteConfiguration(std::ostream& fout,
       }
     }
   fout << "/>\n";  // end of <Tool Name=VCCLCompilerTool
-  if(gg->IsMasmEnabled() && !this->FortranProject)
-    {
-    fout <<
-      "\t\t\t<Tool\n"
-      "\t\t\t\tName=\"MASM\"\n"
-      "\t\t\t/>\n"
-      ;
-    }
   tool = "VCCustomBuildTool";
   if(this->FortranProject)
     {
@@ -1703,12 +1695,11 @@ bool cmLocalVisualStudio7Generator
       else if(!fcinfo.FileConfigMap.empty())
         {
         const char* aCompilerTool = "VCCLCompilerTool";
-        const char* ppLang = "CXX";
+        const char* lang = "CXX";
         if(this->FortranProject)
           {
           aCompilerTool = "VFFortranCompilerTool";
           }
-        std::string const& lang = (*sf)->GetLanguage();
         std::string ext = (*sf)->GetExtension();
         ext = cmSystemTools::LowerCase(ext);
         if(ext == "idl")
@@ -1722,7 +1713,7 @@ bool cmLocalVisualStudio7Generator
         if(ext == "rc")
           {
           aCompilerTool = "VCResourceCompilerTool";
-          ppLang = "RC";
+          lang = "RC";
           if(this->FortranProject)
             {
             aCompilerTool = "VFResourceCompilerTool";
@@ -1735,11 +1726,6 @@ bool cmLocalVisualStudio7Generator
             {
             aCompilerTool = "VFCustomBuildTool";
             }
-          }
-        if (gg->IsMasmEnabled() && !this->FortranProject &&
-            lang == "ASM_MASM")
-          {
-          aCompilerTool = "MASM";
           }
         for(std::map<std::string, cmLVS7GFileConfig>::const_iterator
               fci = fcinfo.FileConfigMap.begin();
@@ -1777,7 +1763,7 @@ bool cmLocalVisualStudio7Generator
             fileOptions.OutputFlagMap(fout, "\t\t\t\t\t");
             fileOptions.OutputPreprocessorDefinitions(fout,
                                                       "\t\t\t\t\t", "\n",
-                                                      ppLang);
+                                                      lang);
             }
           if(!fc.AdditionalDeps.empty())
             {
@@ -2109,16 +2095,6 @@ cmLocalVisualStudio7Generator::WriteProjectStart(std::ostream& fout,
        << "\t<Platforms>\n"
        << "\t\t<Platform\n\t\t\tName=\"" << gg->GetPlatformName() << "\"/>\n"
        << "\t</Platforms>\n";
-  if(gg->IsMasmEnabled())
-    {
-    fout <<
-      "\t<ToolFiles>\n"
-      "\t\t<DefaultToolFile\n"
-      "\t\t\tFileName=\"masm.rules\"\n"
-      "\t\t/>\n"
-      "\t</ToolFiles>\n"
-      ;
-    }
 }
 
 

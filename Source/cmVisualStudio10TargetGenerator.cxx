@@ -1192,7 +1192,7 @@ void cmVisualStudio10TargetGenerator::WriteAllSources()
       {
       tool = "ClCompile";
       }
-    else if (lang == "ASM_MASM" &&
+    else if (lang == "ASM_NASM" &&
              this->GlobalGenerator->IsMasmEnabled())
       {
       tool = "MASM";
