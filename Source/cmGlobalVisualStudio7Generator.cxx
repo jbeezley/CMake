@@ -23,7 +23,6 @@ cmGlobalVisualStudio7Generator::cmGlobalVisualStudio7Generator(
 {
   this->IntelProjectVersion = 0;
   this->DevEnvCommandInitialized = false;
-  this->MasmEnabled = false;
 
   if (platformName.empty())
     {
