@@ -2322,29 +2322,39 @@ void cmVisualStudio10TargetGenerator::WriteWinRTPackageCertificateKeyFile()
       break;
       }
 
-    // If we are missing files and we don't have a certificate and
-    // aren't targeting WP8.0, add a default certificate
-    if(pfxFile.empty() && this->IsMissingFiles &&
+    if(this->IsMissingFiles &&
        !(this->GlobalGenerator->TargetsWindowsPhone() &&
          this->GlobalGenerator->GetSystemVersion() == "8.0"))
       {
-      std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                               std::string("/") + this->Target->GetName();
-      std::string templateFolder = cmSystemTools::GetCMakeRoot() +
-                                   "/Templates/Windows";
-      pfxFile = baseFolder + "/Windows_TemporaryKey.pfx";
-      cmSystemTools::CopyAFile(templateFolder + "/Windows_TemporaryKey.pfx",
-                               pfxFile, false);
-      this->ConvertToWindowsSlash(pfxFile);
-      this->AddedFiles.push_back(pfxFile);
-      }
-
-    if(!pfxFile.empty())
-      {
+      // Move the manifest to a project directory to avoid clashes
       this->WriteString("<PropertyGroup>\n", 1);
-      this->WriteString("<", 2);
-      (*this->BuildFileStream) << "PackageCertificateKeyFile>"
-        << pfxFile << "</PackageCertificateKeyFile>\n";
+      this->WriteString("<AppxPackageArtifactsDir>", 2);
+      (*this->BuildFileStream) << this->Target->GetName() <<
+        "\\</AppxPackageArtifactsDir>\n";
+      this->WriteString("<ProjectPriFullPath>"
+        "$(TargetDir)resources.pri</ProjectPriFullPath>", 2);
+
+      // If we are missing files and we don't have a certificate and
+      // aren't targeting WP8.0, add a default certificate
+      if(pfxFile.empty())
+        {
+        std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
+                                 std::string("/") + this->Target->GetName();
+        std::string templateFolder = cmSystemTools::GetCMakeRoot() +
+                                     "/Templates/Windows";
+        pfxFile = baseFolder + "/Windows_TemporaryKey.pfx";
+        cmSystemTools::CopyAFile(templateFolder + "/Windows_TemporaryKey.pfx",
+                                 pfxFile, false);
+        this->ConvertToWindowsSlash(pfxFile);
+        this->AddedFiles.push_back(pfxFile);
+        }
+
+      if(!pfxFile.empty())
+        {
+        this->WriteString("<", 2);
+        (*this->BuildFileStream) << "PackageCertificateKeyFile>"
+          << pfxFile << "</PackageCertificateKeyFile>\n";
+        }
       this->WriteString("</PropertyGroup>\n", 1);
       }
     }
