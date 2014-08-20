@@ -64,6 +64,10 @@ void cmFindCommon::SelectDefaultRootPathMode()
     {
     this->FindRootPathMode = RootPathModeBoth;
     }
+  else if (rootPathMode=="SYSTEM_ONLY")
+    {
+    this->FindRootPathMode = RootPathModeSystemOnly;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -125,6 +129,14 @@ void cmFindCommon::SelectDefaultMacMode()
 //----------------------------------------------------------------------------
 void cmFindCommon::RerootPaths(std::vector<std::string>& paths)
 {
+  std::vector<bool> pathsRerootable(paths.size(), true);
+  this->RerootPaths(paths, pathsRerootable);
+}
+
+//----------------------------------------------------------------------------
+void cmFindCommon::RerootPaths(std::vector<std::string>& paths,
+                               const std::vector<bool> &pathsRerootable)
+{
 #if 0
   for(std::vector<std::string>::const_iterator i = paths.begin();
       i != paths.end(); ++i)
@@ -138,12 +150,12 @@ void cmFindCommon::RerootPaths(std::vector<std::string>& paths)
     {
     return;
     }
-  const char* sysroot =
-    this->Makefile->GetDefinition("CMAKE_SYSROOT");
   const char* rootPath =
     this->Makefile->GetDefinition("CMAKE_FIND_ROOT_PATH");
-  const bool noSysroot = !sysroot || !*sysroot;
+  const char* sysroot =
+    this->Makefile->GetDefinition("CMAKE_SYSROOT");
   const bool noRootPath = !rootPath || !*rootPath;
+  const bool noSysroot = !sysroot || !*sysroot;
   if(noSysroot && noRootPath)
     {
     return;
@@ -175,16 +187,19 @@ void cmFindCommon::RerootPaths(std::vector<std::string>& paths)
   for(std::vector<std::string>::const_iterator ri = roots.begin();
       ri != roots.end(); ++ri)
     {
-    for(std::vector<std::string>::const_iterator ui = unrootedPaths.begin();
-        ui != unrootedPaths.end(); ++ui)
+    std::vector<std::string>::const_iterator ui;
+    std::vector<bool>::const_iterator rri;
+    for(ui = unrootedPaths.begin(), rri = pathsRerootable.begin();
+        ui != unrootedPaths.end(); ++ui, ++rri)
       {
       // Place the unrooted path under the current root if it is not
       // already inside.  Skip the unrooted path if it is relative to
       // a user home directory or is empty.
       std::string rootedDir;
-      if(cmSystemTools::IsSubDirectory(ui->c_str(), ri->c_str())
-          || (stagePrefix
-            && cmSystemTools::IsSubDirectory(ui->c_str(), stagePrefix)))
+      if(!*rri
+         || cmSystemTools::IsSubDirectory(ui->c_str(), ri->c_str())
+         || (stagePrefix
+             && cmSystemTools::IsSubDirectory(ui->c_str(), stagePrefix)))
         {
         rootedDir = *ui;
         }
@@ -303,6 +318,10 @@ bool cmFindCommon::CheckCommonArgument(std::string const& arg)
     {
     this->FindRootPathMode = RootPathModeBoth;
     }
+  else if(arg == "CMAKE_FIND_ROOT_PATH_SYSTEM_ONLY")
+    {
+    this->FindRootPathMode = RootPathModeSystemOnly;
+    }
   else
     {
     // The argument is not one of the above.
@@ -401,18 +420,18 @@ void cmFindCommon::AddEnvPath(const char* variable)
 
 //----------------------------------------------------------------------------
 void cmFindCommon::AddPathsInternal(std::vector<std::string> const& in_paths,
-                                    PathType pathType)
+                                    PathType pathType, bool reRootable)
 {
   for(std::vector<std::string>::const_iterator i = in_paths.begin();
       i != in_paths.end(); ++i)
     {
-    this->AddPathInternal(*i, pathType);
+    this->AddPathInternal(*i, pathType, reRootable);
     }
 }
 
 //----------------------------------------------------------------------------
 void cmFindCommon::AddPathInternal(std::string const& in_path,
-                                   PathType pathType)
+                                   PathType pathType, bool reRootable)
 {
   if(in_path.empty())
     {
@@ -434,20 +453,19 @@ void cmFindCommon::AddPathInternal(std::string const& in_path,
   if(this->SearchPathsEmitted.insert(fullPath).second)
     {
     this->SearchPaths.push_back(fullPath);
+    this->SearchPathsRerootable.push_back(reRootable);
     }
 }
 
 //----------------------------------------------------------------------------
 void cmFindCommon::ComputeFinalPaths()
 {
-  std::vector<std::string>& paths = this->SearchPaths;
-
   // Expand list of paths inside all search roots.
-  this->RerootPaths(paths);
+  this->RerootPaths(this->SearchPaths, this->SearchPathsRerootable);
 
   // Add a trailing slash to all paths to aid the search process.
-  for(std::vector<std::string>::iterator i = paths.begin();
-      i != paths.end(); ++i)
+  for(std::vector<std::string>::iterator i = this->SearchPaths.begin();
+      i != this->SearchPaths.end(); ++i)
     {
     std::string& p = *i;
     if(!p.empty() && p[p.size()-1] != '/')

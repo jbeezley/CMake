@@ -32,12 +32,15 @@ protected:
 
   enum RootPathMode { RootPathModeBoth,
                       RootPathModeOnlyRootPath,
-                      RootPathModeNoRootPath };
+                      RootPathModeNoRootPath,
+                      RootPathModeSystemOnly };
 
   enum PathType { FullPath, CMakePath, EnvPath };
 
   /** Place a set of search paths under the search roots.  */
   void RerootPaths(std::vector<std::string>& paths);
+  void RerootPaths(std::vector<std::string>& paths,
+                   const std::vector<bool> &pathsRerootable);
 
   /** Get ignored paths from CMAKE_[SYSTEM_]IGNORE_path variables.  */
   void GetIgnoredPaths(std::vector<std::string>& ignore);
@@ -66,8 +69,9 @@ protected:
   void AddCMakePath(const std::string& variable);
   void AddEnvPath(const char* variable);
   void AddPathsInternal(std::vector<std::string> const& in_paths,
-                        PathType pathType);
-  void AddPathInternal(std::string const& in_path, PathType pathType);
+                        PathType pathType, bool reRootable = true);
+  void AddPathInternal(std::string const& in_path, PathType pathType,
+                       bool reRootable = true);
 
   void SetMakefile(cmMakefile* makefile);
 
@@ -81,6 +85,7 @@ protected:
   std::vector<std::string> UserPaths;
   std::vector<std::string> UserHints;
   std::vector<std::string> SearchPaths;
+  std::vector<bool> SearchPathsRerootable;
   std::set<std::string> SearchPathsEmitted;
 
   bool SearchFrameworkFirst;
