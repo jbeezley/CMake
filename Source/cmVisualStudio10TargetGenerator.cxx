@@ -161,6 +161,9 @@ cmVisualStudio10TargetGenerator(cmTarget* target,
   this->MSTools = true;
   this->BuildFileStream = 0;
   this->IsMissingFiles = false;
+  this->DefaultArtifactDir =
+    this->Makefile->GetStartOutputDirectory() + std::string("/") +
+    this->LocalGenerator->GetTargetDirectory(*this->Target);
 }
 
 cmVisualStudio10TargetGenerator::~cmVisualStudio10TargetGenerator()
@@ -2327,9 +2330,12 @@ void cmVisualStudio10TargetGenerator::WriteWinRTPackageCertificateKeyFile()
          this->GlobalGenerator->GetSystemVersion() == "8.0"))
       {
       // Move the manifest to a project directory to avoid clashes
+      std::string artifactDir =
+        this->LocalGenerator->GetTargetDirectory(*this->Target);
+      this->ConvertToWindowsSlash(artifactDir);
       this->WriteString("<PropertyGroup>\n", 1);
       this->WriteString("<AppxPackageArtifactsDir>", 2);
-      (*this->BuildFileStream) << this->Target->GetName() <<
+      (*this->BuildFileStream) << cmVS10EscapeXML(artifactDir) <<
         "\\</AppxPackageArtifactsDir>\n";
       this->WriteString("<ProjectPriFullPath>"
         "$(TargetDir)resources.pri</ProjectPriFullPath>", 2);
@@ -2338,11 +2344,9 @@ void cmVisualStudio10TargetGenerator::WriteWinRTPackageCertificateKeyFile()
       // aren't targeting WP8.0, add a default certificate
       if(pfxFile.empty())
         {
-        std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                                 std::string("/") + this->Target->GetName();
         std::string templateFolder = cmSystemTools::GetCMakeRoot() +
                                      "/Templates/Windows";
-        pfxFile = baseFolder + "/Windows_TemporaryKey.pfx";
+        pfxFile = this->DefaultArtifactDir + "/Windows_TemporaryKey.pfx";
         cmSystemTools::CopyAFile(templateFolder + "/Windows_TemporaryKey.pfx",
                                  pfxFile, false);
         this->ConvertToWindowsSlash(pfxFile);
@@ -2518,8 +2522,6 @@ void cmVisualStudio10TargetGenerator::WriteMissingFiles()
 
 void cmVisualStudio10TargetGenerator::WriteMissingFilesWP80()
 {
-  std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                           std::string("/") + this->Target->GetName();
   std::string templateFolder = cmSystemTools::GetCMakeRoot() +
                                "/Templates/Windows";
 
@@ -2528,248 +2530,250 @@ void cmVisualStudio10TargetGenerator::WriteMissingFilesWP80()
   // folders
   std::string manifestFile = this->Makefile->GetStartOutputDirectory() +
                              std::string("/WMAppManifest.xml");
+  std::string artifactDir =
+    this->LocalGenerator->GetTargetDirectory(*this->Target);
+  this->ConvertToWindowsSlash(artifactDir);
+  std::string artifactDirXML = cmVS10EscapeXML(artifactDir);
+  std::string targetNameXML = cmVS10EscapeXML(this->Target->GetName());
 
   cmGeneratedFileStream fout(manifestFile.c_str());
   fout.SetCopyIfDifferent(true);
 
-  fout << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-    << "<Deployment xmlns="
-    << "\"http://schemas.microsoft.com/windowsphone/2012/deployment\" "
-    << "AppPlatformVersion=\"8.0\">\n"
-    << "\t<DefaultLanguage xmlns=\"\" code=\"en-US\"/>\n"
-    << "\t<App xmlns=\"\" ProductID=\"{" << this->GUID << "}\" "
-    << "Title=\"CMake Test Program\" RuntimeType=\"Modern Native\" "
-    << "Version=\"1.0.0.0\" Genre=\"apps.normal\"  Author=\"CMake\" "
-    << "Description=\"Default CMake App\" Publisher=\"CMake\" "
-    << "PublisherID=\"{" << this->GUID << "}\">\n"
-    << "\t\t<IconPath IsRelative=\"true\" IsResource=\"false\">"
-    << this->Target->GetName() << "\\ApplicationIcon.png</IconPath>"
-    << "\n"
-    << "\t\t<Capabilities/>\n"
-    << "\t\t<Tasks>\n"
-    << "\t\t\t<DefaultTask Name=\"_default\" ImagePath=\""
-    << "CMakeTestExecutable.exe\" ImageParams=\"\" />\n"
-    << "\t\t</Tasks>\n"
-    << "\t\t<Tokens>\n"
-    << "\t\t\t<PrimaryToken TokenID=\"" << this->Name
-    << "Token\" TaskName=\"_default\">\n"
-    << "\t\t\t\t<TemplateFlip>\n"
-    << "\t\t\t\t\t<SmallImageURI IsRelative=\"true\" IsResource=\"false\">"
-    << this->Target->GetName() << "\\SmallLogo.png</SmallImageURI>"
-    << "\n"
-    << "\t\t\t\t\t<Count>0</Count>\n"
-    << "\t\t\t\t\t<BackgroundImageURI IsRelative=\"true\" IsResource="
-    << "\"false\">"
-    << this->Target->GetName() << "\\Logo.png</BackgroundImageURI>"
-    << "\n"
-    << "\t\t\t\t</TemplateFlip>\n"
-    << "\t\t\t</PrimaryToken>\n"
-    << "\t\t</Tokens>\n"
-    << "\t\t<ScreenResolutions>\n"
-    << "\t\t\t<ScreenResolution Name=\"ID_RESOLUTION_WVGA\" />\n"
-    << "\t\t</ScreenResolutions>\n"
-    << "\t</App>\n"
-    << "</Deployment>\n";
+  fout <<
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<Deployment"
+    " xmlns=\"http://schemas.microsoft.com/windowsphone/2012/deployment\""
+    " AppPlatformVersion=\"8.0\">\n"
+    "\t<DefaultLanguage xmlns=\"\" code=\"en-US\"/>\n"
+    "\t<App xmlns=\"\" ProductID=\"{" << this->GUID << "}\""
+    " Title=\"CMake Test Program\" RuntimeType=\"Modern Native\""
+    " Version=\"1.0.0.0\" Genre=\"apps.normal\"  Author=\"CMake\""
+    " Description=\"Default CMake App\" Publisher=\"CMake\""
+    " PublisherID=\"{" << this->GUID << "}\">\n"
+    "\t\t<IconPath IsRelative=\"true\" IsResource=\"false\">"
+       << artifactDirXML << "\\ApplicationIcon.png</IconPath>\n"
+    "\t\t<Capabilities/>\n"
+    "\t\t<Tasks>\n"
+    "\t\t\t<DefaultTask Name=\"_default\""
+    " ImagePath=\"" << targetNameXML << ".exe\" ImageParams=\"\" />\n"
+    "\t\t</Tasks>\n"
+    "\t\t<Tokens>\n"
+    "\t\t\t<PrimaryToken TokenID=\"" << targetNameXML << "Token\""
+    " TaskName=\"_default\">\n"
+    "\t\t\t\t<TemplateFlip>\n"
+    "\t\t\t\t\t<SmallImageURI IsRelative=\"true\" IsResource=\"false\">"
+       << artifactDirXML << "\\SmallLogo.png</SmallImageURI>\n"
+    "\t\t\t\t\t<Count>0</Count>\n"
+    "\t\t\t\t\t<BackgroundImageURI IsRelative=\"true\" IsResource=\"false\">"
+       << artifactDirXML << "\\Logo.png</BackgroundImageURI>\n"
+    "\t\t\t\t</TemplateFlip>\n"
+    "\t\t\t</PrimaryToken>\n"
+    "\t\t</Tokens>\n"
+    "\t\t<ScreenResolutions>\n"
+    "\t\t\t<ScreenResolution Name=\"ID_RESOLUTION_WVGA\" />\n"
+    "\t\t</ScreenResolutions>\n"
+    "\t</App>\n"
+    "</Deployment>\n";
 
   std::string sourceFile = this->ConvertPath(manifestFile, false);
-  ConvertToWindowsSlash(sourceFile);
+  this->ConvertToWindowsSlash(sourceFile);
   this->WriteString("<Xml Include=\"", 2);
-  (*this->BuildFileStream) << sourceFile << "\">\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(sourceFile) << "\">\n";
   this->WriteString("<SubType>Designer</SubType>\n", 3);
   this->WriteString("</Xml>\n", 2);
   this->AddedFiles.push_back(sourceFile);
 
-  std::string smallLogo = baseFolder + "/SmallLogo.png";
+  std::string smallLogo = this->DefaultArtifactDir + "/SmallLogo.png";
   cmSystemTools::CopyAFile(templateFolder + "/SmallLogo.png",
                            smallLogo, false);
-  ConvertToWindowsSlash(smallLogo);
+  this->ConvertToWindowsSlash(smallLogo);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << smallLogo << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(smallLogo) << "\" />\n";
   this->AddedFiles.push_back(smallLogo);
 
-  std::string logo = baseFolder + "/Logo.png";
+  std::string logo = this->DefaultArtifactDir + "/Logo.png";
   cmSystemTools::CopyAFile(templateFolder + "/Logo.png",
                            logo, false);
-  ConvertToWindowsSlash(logo);
+  this->ConvertToWindowsSlash(logo);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << logo << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(logo) << "\" />\n";
   this->AddedFiles.push_back(logo);
 
-  std::string applicationIcon = baseFolder + "/ApplicationIcon.png";
+  std::string applicationIcon =
+    this->DefaultArtifactDir + "/ApplicationIcon.png";
   cmSystemTools::CopyAFile(templateFolder + "/ApplicationIcon.png",
                            applicationIcon, false);
-  ConvertToWindowsSlash(applicationIcon);
+  this->ConvertToWindowsSlash(applicationIcon);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << applicationIcon << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(applicationIcon) << "\" />\n";
   this->AddedFiles.push_back(applicationIcon);
 }
 
 void cmVisualStudio10TargetGenerator::WriteMissingFilesWP81()
 {
-  std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                           std::string("/") + this->Target->GetName();
-  std::string manifestFile = baseFolder + "/package.appxManifest";
+  std::string manifestFile =
+    this->DefaultArtifactDir + "/package.appxManifest";
+  std::string artifactDir =
+    this->LocalGenerator->GetTargetDirectory(*this->Target);
+  this->ConvertToWindowsSlash(artifactDir);
+  std::string artifactDirXML = cmVS10EscapeXML(artifactDir);
+  std::string targetNameXML = cmVS10EscapeXML(this->Target->GetName());
 
   cmGeneratedFileStream fout(manifestFile.c_str());
   fout.SetCopyIfDifferent(true);
 
-  fout << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-    << "<Package xmlns=\"http://schemas.microsoft.com/appx/2010/manifest\" "
-    << "xmlns:m2=\"http://schemas.microsoft.com/appx/2013/manifest\" "
-    << "xmlns:mp=\"http://schemas.microsoft.com/appx/2014/phone/manifest\">"
-    << "\n"
-    << "\t<Identity Name=\"" << this->GUID
-    << "\" Publisher=\"CN=CMake\" Version=\"1.0.0.0\" />\n"
-    << "\t<mp:PhoneIdentity PhoneProductId=\"" << this->GUID
-    << "\" PhonePublisherId=\"00000000-0000-0000-0000-000000000000\"/>"
-    << "\n"
-    << "\t<Properties>\n"
-    << "\t\t<DisplayName>" << this->Target->GetName() << "</DisplayName>"
-    << "\n"
-    << "\t\t<PublisherDisplayName>CMake</PublisherDisplayName>\n"
-    << "\t\t<Logo>" << this->Target->GetName() << "\\StoreLogo.png</Logo>"
-    << "\n"
-    << "\t</Properties>\n"
-    << "\t<Prerequisites>\n"
-    << "\t\t<OSMinVersion>6.3.1</OSMinVersion>\n"
-    << "\t\t<OSMaxVersionTested>6.3.1</OSMaxVersionTested>\n"
-    << "\t</Prerequisites>\n"
-    << "\t<Resources>\n"
-    << "\t\t<Resource Language=\"x-generate\" />\n"
-    << "\t</Resources>\n"
-    << "\t<Applications>\n"
-    <<"\t\t<Application Id=\"App\" Executable=\""
-    << this->Target->GetName() << ".exe\" EntryPoint=\""
-    << this->Target->GetName() << ".App\">\n"
-    << "\t\t\t<m2:VisualElements\n"
-    << "\t\t\t\tDisplayName=\"" << this->Target->GetName() << "\"\n"
-    << "\t\t\t\tDescription=\"" << this->Target->GetName() << "\"\n"
-    << "\t\t\t\tBackgroundColor=\"#336699\"\n"
-    << "\t\t\t\tForegroundText=\"light\"\n"
-    << "\t\t\t\tSquare150x150Logo=\"" << this->Target->GetName()
-    << "\\Logo.png\"\n"
-    << "\t\t\t\tSquare30x30Logo=\"" << this->Target->GetName()
-    << "\\SmallLogo.png\">\n"
-    << "\t\t\t\t<m2:DefaultTile ShortName=\""
-    << this->Target->GetName() << "\">\n"
-    << "\t\t\t\t\t<m2:ShowNameOnTiles>\n"
-    << "\t\t\t\t\t\t<m2:ShowOn Tile=\"square150x150Logo\" />\n"
-    << "\t\t\t\t\t</m2:ShowNameOnTiles>\n"
-    << "\t\t\t\t</m2:DefaultTile>\n"
-    << "\t\t\t\t<m2:SplashScreen Image=\"" << this->Target->GetName()
-    << "\\SplashScreen.png\" />\n"
-    << "\t\t\t</m2:VisualElements>\n"
-    << "\t\t</Application>\n"
-    << "\t</Applications>\n"
-    << "</Package>\n";
+  fout <<
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<Package xmlns=\"http://schemas.microsoft.com/appx/2010/manifest\""
+    " xmlns:m2=\"http://schemas.microsoft.com/appx/2013/manifest\""
+    " xmlns:mp=\"http://schemas.microsoft.com/appx/2014/phone/manifest\">\n"
+    "\t<Identity Name=\"" << this->GUID << "\" Publisher=\"CN=CMake\""
+    " Version=\"1.0.0.0\" />\n"
+    "\t<mp:PhoneIdentity PhoneProductId=\"" << this->GUID << "\""
+    " PhonePublisherId=\"00000000-0000-0000-0000-000000000000\"/>\n"
+    "\t<Properties>\n"
+    "\t\t<DisplayName>" << targetNameXML << "</DisplayName>\n"
+    "\t\t<PublisherDisplayName>CMake</PublisherDisplayName>\n"
+    "\t\t<Logo>" << artifactDirXML << "\\StoreLogo.png</Logo>\n"
+    "\t</Properties>\n"
+    "\t<Prerequisites>\n"
+    "\t\t<OSMinVersion>6.3.1</OSMinVersion>\n"
+    "\t\t<OSMaxVersionTested>6.3.1</OSMaxVersionTested>\n"
+    "\t</Prerequisites>\n"
+    "\t<Resources>\n"
+    "\t\t<Resource Language=\"x-generate\" />\n"
+    "\t</Resources>\n"
+    "\t<Applications>\n"
+    "\t\t<Application Id=\"App\""
+    " Executable=\"" << targetNameXML << ".exe\""
+    " EntryPoint=\"" << targetNameXML << ".App\">\n"
+    "\t\t\t<m2:VisualElements\n"
+    "\t\t\t\tDisplayName=\"" << targetNameXML << "\"\n"
+    "\t\t\t\tDescription=\"" << targetNameXML << "\"\n"
+    "\t\t\t\tBackgroundColor=\"#336699\"\n"
+    "\t\t\t\tForegroundText=\"light\"\n"
+    "\t\t\t\tSquare150x150Logo=\"" << artifactDirXML << "\\Logo.png\"\n"
+    "\t\t\t\tSquare30x30Logo=\"" << artifactDirXML << "\\SmallLogo.png\">\n"
+    "\t\t\t\t<m2:DefaultTile ShortName=\"" << targetNameXML << "\">\n"
+    "\t\t\t\t\t<m2:ShowNameOnTiles>\n"
+    "\t\t\t\t\t\t<m2:ShowOn Tile=\"square150x150Logo\" />\n"
+    "\t\t\t\t\t</m2:ShowNameOnTiles>\n"
+    "\t\t\t\t</m2:DefaultTile>\n"
+    "\t\t\t\t<m2:SplashScreen"
+    " Image=\"" << artifactDirXML << "\\SplashScreen.png\" />\n"
+    "\t\t\t</m2:VisualElements>\n"
+    "\t\t</Application>\n"
+    "\t</Applications>\n"
+    "</Package>\n";
 
   this->WriteCommonMissingFiles(manifestFile);
 }
 
 void cmVisualStudio10TargetGenerator::WriteMissingFilesWS80()
 {
-  std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                           std::string("/") + this->Target->GetName();
-  std::string manifestFile = baseFolder + "/package.appxManifest";
+  std::string manifestFile =
+    this->DefaultArtifactDir + "/package.appxManifest";
+  std::string artifactDir =
+    this->LocalGenerator->GetTargetDirectory(*this->Target);
+  this->ConvertToWindowsSlash(artifactDir);
+  std::string artifactDirXML = cmVS10EscapeXML(artifactDir);
+  std::string targetNameXML = cmVS10EscapeXML(this->Target->GetName());
 
   cmGeneratedFileStream fout(manifestFile.c_str());
   fout.SetCopyIfDifferent(true);
 
-  fout << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-    << "<Package xmlns=\"http://schemas.microsoft.com/appx/2010/manifest\">"
-    << "\n"
-    << "\t<Identity Name=\"" << this->GUID << "\" Publisher=\"CN=CMake\" "
-    << "Version=\"1.0.0.0\" />\n"
-    << "\t<Properties>\n"
-    << "\t\t<DisplayName>" << this->Target->GetName() << "</DisplayName>"
-    << "\n"
-    << "\t\t<PublisherDisplayName>CMake</PublisherDisplayName>\n"
-    << "\t\t<Logo>" << this->Target->GetName() << "\\StoreLogo.png</Logo>"
-    << "\n"
-    << "\t</Properties>\n"
-    << "\t<Prerequisites>\n"
-    << "\t\t<OSMinVersion>6.2.1</OSMinVersion>\n"
-    << "\t\t<OSMaxVersionTested>6.2.1</OSMaxVersionTested>\n"
-    << "\t</Prerequisites>\n"
-    << "\t<Resources>\n"
-    << "\t\t<Resource Language=\"x-generate\" />\n"
-    << "\t</Resources>\n"
-    << "\t<Applications>\n"
-    <<"\t\t<Application Id=\"App\" Executable=\""
-    << this->Target->GetName() << ".exe\" EntryPoint=\""
-    << this->Target->GetName() << ".App\">\n"
-    << "\t\t\t<VisualElements DisplayName=\"" << this->Target->GetName()
-    << "\" Description=\"" << this->Target->GetName()
-    << "\" BackgroundColor=\"#336699\" ForegroundText=\"light\" "
-    << "Logo=\"" << this->Target->GetName() << "\\Logo.png\" "
-    << "SmallLogo=\"" << this->Target->GetName() << "\\SmallLogo.png\">"
-    << "\n"
-    << "\t\t\t\t<DefaultTile ShowName=\"allLogos\" ShortName=\""
-    << this->Target->GetName() << "\" />\n"
-    << "\t\t\t\t<SplashScreen Image=\"" << this->Target->GetName()
-    << "\\SplashScreen.png\" />\n"
-    << "\t\t\t</VisualElements>\n"
-    << "\t\t</Application>\n"
-    << "\t</Applications>\n"
-    << "</Package>\n";
+  fout <<
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<Package xmlns=\"http://schemas.microsoft.com/appx/2010/manifest\">\n"
+    "\t<Identity Name=\"" << this->GUID << "\" Publisher=\"CN=CMake\""
+    " Version=\"1.0.0.0\" />\n"
+    "\t<Properties>\n"
+    "\t\t<DisplayName>" << targetNameXML << "</DisplayName>\n"
+    "\t\t<PublisherDisplayName>CMake</PublisherDisplayName>\n"
+    "\t\t<Logo>" << artifactDirXML << "\\StoreLogo.png</Logo>\n"
+    "\t</Properties>\n"
+    "\t<Prerequisites>\n"
+    "\t\t<OSMinVersion>6.2.1</OSMinVersion>\n"
+    "\t\t<OSMaxVersionTested>6.2.1</OSMaxVersionTested>\n"
+    "\t</Prerequisites>\n"
+    "\t<Resources>\n"
+    "\t\t<Resource Language=\"x-generate\" />\n"
+    "\t</Resources>\n"
+    "\t<Applications>\n"
+    "\t\t<Application Id=\"App\""
+    " Executable=\"" << targetNameXML << ".exe\""
+    " EntryPoint=\"" << targetNameXML << ".App\">\n"
+    "\t\t\t<VisualElements"
+    " DisplayName=\"" << targetNameXML << "\""
+    " Description=\"" << targetNameXML << "\""
+    " BackgroundColor=\"#336699\" ForegroundText=\"light\""
+    " Logo=\"" << artifactDirXML << "\\Logo.png\""
+    " SmallLogo=\"" << artifactDirXML << "\\SmallLogo.png\">\n"
+    "\t\t\t\t<DefaultTile ShowName=\"allLogos\""
+    " ShortName=\"" << targetNameXML << "\" />\n"
+    "\t\t\t\t<SplashScreen"
+    " Image=\"" << artifactDirXML << "\\SplashScreen.png\" />\n"
+    "\t\t\t</VisualElements>\n"
+    "\t\t</Application>\n"
+    "\t</Applications>\n"
+    "</Package>\n";
 
   this->WriteCommonMissingFiles(manifestFile);
 }
 
 void cmVisualStudio10TargetGenerator::WriteMissingFilesWS81()
 {
-  std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                           std::string("/") + this->Target->GetName();
-  std::string manifestFile = baseFolder + "/package.appxManifest";
+  std::string manifestFile =
+    this->DefaultArtifactDir + "/package.appxManifest";
+  std::string artifactDir =
+    this->LocalGenerator->GetTargetDirectory(*this->Target);
+  this->ConvertToWindowsSlash(artifactDir);
+  std::string artifactDirXML = cmVS10EscapeXML(artifactDir);
+  std::string targetNameXML = cmVS10EscapeXML(this->Target->GetName());
 
   cmGeneratedFileStream fout(manifestFile.c_str());
   fout.SetCopyIfDifferent(true);
 
-  fout << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
-    << "<Package xmlns=\"http://schemas.microsoft.com/appx/2010/manifest\" "
-    << "xmlns:m2=\"http://schemas.microsoft.com/appx/2013/manifest\">"
-    << "\n"
-    << "\t<Identity Name=\"" << this->GUID << "\" Publisher=\"CN=CMake\" "
-    << "Version=\"1.0.0.0\" />\n"
-    << "\t<Properties>\n"
-    << "\t\t<DisplayName>" << this->Target->GetName() << "</DisplayName>"
-    << "\n"
-    << "\t\t<PublisherDisplayName>CMake</PublisherDisplayName>\n"
-    << "\t\t<Logo>" << this->Target->GetName() << "\\StoreLogo.png</Logo>"
-    << "\n"
-    << "\t</Properties>\n"
-    << "\t<Prerequisites>\n"
-    << "\t\t<OSMinVersion>6.3</OSMinVersion>\n"
-    << "\t\t<OSMaxVersionTested>6.3</OSMaxVersionTested>\n"
-    << "\t</Prerequisites>\n"
-    << "\t<Resources>\n"
-    << "\t\t<Resource Language=\"x-generate\" />\n"
-    << "\t</Resources>\n"
-    << "\t<Applications>\n"
-    <<"\t\t<Application Id=\"App\" Executable=\""
-    << this->Target->GetName() << ".exe\" EntryPoint=\""
-    << this->Target->GetName() << ".App\">\n"
-    << "\t\t\t<m2:VisualElements\n"
-    << "\t\t\t\tDisplayName=\"" << this->Target->GetName() << "\"\n"
-    << "\t\t\t\tDescription=\"" << this->Target->GetName() << "\"\n"
-    << "\t\t\t\tBackgroundColor=\"#336699\"\n"
-    << "\t\t\t\tForegroundText=\"light\"\n"
-    << "\t\t\t\tSquare150x150Logo=\"" << this->Target->GetName()
-    << "\\Logo.png\"\n"
-    << "\t\t\t\tSquare30x30Logo=\"" << this->Target->GetName()
-    << "\\SmallLogo.png\">\n"
-    << "\t\t\t\t<m2:DefaultTile ShortName=\""
-    << this->Target->GetName() << "\">\n"
-    << "\t\t\t\t\t<m2:ShowNameOnTiles>\n"
-    << "\t\t\t\t\t\t<m2:ShowOn Tile=\"square150x150Logo\" />\n"
-    << "\t\t\t\t\t</m2:ShowNameOnTiles>\n"
-    << "\t\t\t\t</m2:DefaultTile>\n"
-    << "\t\t\t\t<m2:SplashScreen Image=\"" << this->Target->GetName()
-    << "\\SplashScreen.png\" />\n"
-    << "\t\t\t</m2:VisualElements>\n"
-    << "\t\t</Application>\n"
-    << "\t</Applications>\n"
-    << "</Package>\n";
+  fout <<
+    "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+    "<Package xmlns=\"http://schemas.microsoft.com/appx/2010/manifest\""
+    " xmlns:m2=\"http://schemas.microsoft.com/appx/2013/manifest\">\n"
+    "\t<Identity Name=\"" << this->GUID << "\" Publisher=\"CN=CMake\""
+    " Version=\"1.0.0.0\" />\n"
+    "\t<Properties>\n"
+    "\t\t<DisplayName>" << targetNameXML << "</DisplayName>\n"
+    "\t\t<PublisherDisplayName>CMake</PublisherDisplayName>\n"
+    "\t\t<Logo>" << artifactDirXML << "\\StoreLogo.png</Logo>\n"
+    "\t</Properties>\n"
+    "\t<Prerequisites>\n"
+    "\t\t<OSMinVersion>6.3</OSMinVersion>\n"
+    "\t\t<OSMaxVersionTested>6.3</OSMaxVersionTested>\n"
+    "\t</Prerequisites>\n"
+    "\t<Resources>\n"
+    "\t\t<Resource Language=\"x-generate\" />\n"
+    "\t</Resources>\n"
+    "\t<Applications>\n"
+    "\t\t<Application Id=\"App\""
+    " Executable=\"" << targetNameXML << ".exe\""
+    " EntryPoint=\"" << targetNameXML << ".App\">\n"
+    "\t\t\t<m2:VisualElements\n"
+    "\t\t\t\tDisplayName=\"" << targetNameXML << "\"\n"
+    "\t\t\t\tDescription=\"" << targetNameXML << "\"\n"
+    "\t\t\t\tBackgroundColor=\"#336699\"\n"
+    "\t\t\t\tForegroundText=\"light\"\n"
+    "\t\t\t\tSquare150x150Logo=\"" << artifactDirXML << "\\Logo.png\"\n"
+    "\t\t\t\tSquare30x30Logo=\"" << artifactDirXML << "\\SmallLogo.png\">\n"
+    "\t\t\t\t<m2:DefaultTile ShortName=\"" << targetNameXML << "\">\n"
+    "\t\t\t\t\t<m2:ShowNameOnTiles>\n"
+    "\t\t\t\t\t\t<m2:ShowOn Tile=\"square150x150Logo\" />\n"
+    "\t\t\t\t\t</m2:ShowNameOnTiles>\n"
+    "\t\t\t\t</m2:DefaultTile>\n"
+    "\t\t\t\t<m2:SplashScreen"
+    " Image=\"" << artifactDirXML << "\\SplashScreen.png\" />\n"
+    "\t\t\t</m2:VisualElements>\n"
+    "\t\t</Application>\n"
+    "\t</Applications>\n"
+    "</Package>\n";
 
   this->WriteCommonMissingFiles(manifestFile);
 }
@@ -2778,54 +2782,52 @@ void
 cmVisualStudio10TargetGenerator
 ::WriteCommonMissingFiles(const std::string& manifestFile)
 {
-  std::string baseFolder = this->Makefile->GetStartOutputDirectory() +
-                           std::string("/") + this->Target->GetName();
   std::string templateFolder = cmSystemTools::GetCMakeRoot() +
                                "/Templates/Windows";
 
   std::string sourceFile = this->ConvertPath(manifestFile, false);
   this->ConvertToWindowsSlash(sourceFile);
   this->WriteString("<AppxManifest Include=\"", 2);
-  (*this->BuildFileStream) << sourceFile << "\">\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(sourceFile) << "\">\n";
   this->WriteString("<SubType>Designer</SubType>\n", 3);
   this->WriteString("</AppxManifest>\n", 2);
   this->AddedFiles.push_back(sourceFile);
 
-  std::string smallLogo = baseFolder + "/SmallLogo.png";
+  std::string smallLogo = this->DefaultArtifactDir + "/SmallLogo.png";
   cmSystemTools::CopyAFile(templateFolder + "/SmallLogo.png",
                            smallLogo, false);
   this->ConvertToWindowsSlash(smallLogo);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << smallLogo << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(smallLogo) << "\" />\n";
   this->AddedFiles.push_back(smallLogo);
 
-  std::string logo = baseFolder + "/Logo.png";
+  std::string logo = this->DefaultArtifactDir + "/Logo.png";
   cmSystemTools::CopyAFile(templateFolder + "/Logo.png",
                            logo, false);
   this->ConvertToWindowsSlash(logo);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << logo << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(logo) << "\" />\n";
   this->AddedFiles.push_back(logo);
 
-  std::string storeLogo = baseFolder + "/StoreLogo.png";
+  std::string storeLogo = this->DefaultArtifactDir + "/StoreLogo.png";
   cmSystemTools::CopyAFile(templateFolder + "/StoreLogo.png",
                            storeLogo, false);
   this->ConvertToWindowsSlash(storeLogo);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << storeLogo << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(storeLogo) << "\" />\n";
   this->AddedFiles.push_back(storeLogo);
 
-  std::string splashScreen = baseFolder + "/SplashScreen.png";
+  std::string splashScreen = this->DefaultArtifactDir + "/SplashScreen.png";
   cmSystemTools::CopyAFile(templateFolder + "/SplashScreen.png",
                            splashScreen, false);
-  ConvertToWindowsSlash(splashScreen);
+  this->ConvertToWindowsSlash(splashScreen);
   this->WriteString("<Image Include=\"", 2);
-  (*this->BuildFileStream) << splashScreen << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(splashScreen) << "\" />\n";
   this->AddedFiles.push_back(splashScreen);
 
   // This file has already been added to the build so don't copy it
-  std::string keyFile = baseFolder + "/Windows_TemporaryKey.pfx";
-  ConvertToWindowsSlash(keyFile);
+  std::string keyFile = this->DefaultArtifactDir + "/Windows_TemporaryKey.pfx";
+  this->ConvertToWindowsSlash(keyFile);
   this->WriteString("<None Include=\"", 2);
-  (*this->BuildFileStream) << keyFile << "\" />\n";
+  (*this->BuildFileStream) << cmVS10EscapeXML(keyFile) << "\" />\n";
 }
