@@ -145,6 +145,7 @@ private:
   std::set<cmSourceFile const*> SourcesVisited;
   bool IsMissingFiles;
   std::vector<std::string> AddedFiles;
+  std::string DefaultArtifactDir;
 
   typedef std::map<std::string, ToolSources> ToolSourceMap;
   ToolSourceMap Tools;
