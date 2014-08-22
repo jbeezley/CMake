@@ -181,6 +181,7 @@ cmVisualStudio10TargetGenerator(cmTarget* target,
   this->GUID = this->GlobalGenerator->GetGUID(this->Name.c_str());
   this->Platform = gg->GetPlatformName();
   this->MSTools = true;
+  this->TargetCompileAsWinRT = false;
   this->BuildFileStream = 0;
   this->IsMissingFiles = false;
   this->DefaultArtifactDir =
@@ -1440,6 +1441,7 @@ bool cmVisualStudio10TargetGenerator::OutputSourceSpecificFlags(
       compileAs = "CompileAsC";
       }
     }
+  bool noWinRT = this->TargetCompileAsWinRT && lang == "C";
   bool hasFlags = false;
   // for the first time we need a new line if there is something
   // produced here.
@@ -1473,7 +1475,7 @@ bool cmVisualStudio10TargetGenerator::OutputSourceSpecificFlags(
       }
     // if we have flags or defines for this config then
     // use them
-    if(!flags.empty() || !configDefines.empty() || compileAs)
+    if(!flags.empty() || !configDefines.empty() || compileAs || noWinRT)
       {
       (*this->BuildFileStream ) << firstString;
       firstString = ""; // only do firstString once
@@ -1485,6 +1487,10 @@ bool cmVisualStudio10TargetGenerator::OutputSourceSpecificFlags(
       if(compileAs)
         {
         clOptions.AddFlag("CompileAs", compileAs);
+        }
+      if(noWinRT)
+        {
+        clOptions.AddFlag("CompileAsWinRT", "false");
         }
       clOptions.Parse(flags.c_str());
       if(clOptions.HasFlag("AdditionalIncludeDirectories"))
@@ -1740,6 +1746,13 @@ bool cmVisualStudio10TargetGenerator::ComputeClOptions(
       if (!clOptions.IsWinRt())
         {
         clOptions.AddFlag("CompileAsWinRT", "false");
+        }
+      }
+    if(const char* winRT = clOptions.GetFlag("CompileAsWinRT"))
+      {
+      if(cmSystemTools::IsOn(winRT))
+        {
+        this->TargetCompileAsWinRT = true;
         }
       }
     }
