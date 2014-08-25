@@ -34,7 +34,7 @@ std::string cmUuid::FromMd5(std::vector<unsigned char> const& uuidNamespace,
 
   cmsysMD5_s *md5 = cmsysMD5_New();
   cmsysMD5_Initialize(md5);
-  cmsysMD5_Append(md5, &hashInput[0], hashInput.size());
+  cmsysMD5_Append(md5, &hashInput[0], int(hashInput.size()));
 
   unsigned char digest[16] = {0};
   cmsysMD5_Finalize(md5, digest);
