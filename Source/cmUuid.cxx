@@ -12,7 +12,8 @@
 #include "cmUuid.h"
 
 #include <sstream>
-#include <cstring>
+
+#include <string.h>
 
 #include <cmsys/MD5.h>
 #include "cm_sha2.h"
@@ -71,7 +72,7 @@ void cmUuid::CreateHashInput(std::vector<unsigned char> const& uuidNamespace,
     {
     output.resize(output.size() + name.size());
 
-    std::memcpy(&output[0] + uuidNamespace.size(),
+    memcpy(&output[0] + uuidNamespace.size(),
       name.c_str(), name.size());
     }
 }
@@ -80,7 +81,7 @@ std::string cmUuid::FromDigest(
   const unsigned char* digest, int version) const
 {
   unsigned char uuid[16] = {0};
-  std::memcpy(uuid, digest, 16);
+  memcpy(uuid, digest, 16);
 
   uuid[6] &= 0xF;
   uuid[6] |= (version << 4);
