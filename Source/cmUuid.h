@@ -12,8 +12,7 @@
 #ifndef cmUuid_h
 #define cmUuid_h
 
-#include <string>
-#include <vector>
+#include "cmStandardIncludes.h"
 
 /** \class cmUuid
  * \brief Utility class to generate UUIDs as defined by RFC4122

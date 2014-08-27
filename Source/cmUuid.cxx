@@ -11,8 +11,6 @@
 ============================================================================*/
 #include "cmUuid.h"
 
-#include <sstream>
-
 #include <string.h>
 
 #include <cmsys/MD5.h>
