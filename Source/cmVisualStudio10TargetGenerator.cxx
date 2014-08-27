@@ -2462,12 +2462,17 @@ void cmVisualStudio10TargetGenerator::WriteWinRTPackageCertificateKeyFile()
         this->AddedFiles.push_back(pfxFile);
         }
 
-      if(!pfxFile.empty())
-        {
-        this->WriteString("<", 2);
-        (*this->BuildFileStream) << "PackageCertificateKeyFile>"
-          << pfxFile << "</PackageCertificateKeyFile>\n";
-        }
+      this->WriteString("<", 2);
+      (*this->BuildFileStream) << "PackageCertificateKeyFile>"
+        << pfxFile << "</PackageCertificateKeyFile>\n";
+      this->WriteString("</PropertyGroup>\n", 1);
+      }
+    else if(!pfxFile.empty())
+      {
+      this->WriteString("<PropertyGroup>\n", 1);
+      this->WriteString("<", 2);
+      (*this->BuildFileStream) << "PackageCertificateKeyFile>"
+        << pfxFile << "</PackageCertificateKeyFile>\n";
       this->WriteString("</PropertyGroup>\n", 1);
       }
     }
