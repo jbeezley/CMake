@@ -4,5 +4,7 @@ This variable controls whether the :variable:`CMAKE_FIND_ROOT_PATH` and
 If set to ``ONLY``, then only the roots in :variable:`CMAKE_FIND_ROOT_PATH`
 will be searched. If set to ``NEVER``, then the roots in
 :variable:`CMAKE_FIND_ROOT_PATH` will be ignored and only the host system
-root will be used. If set to ``BOTH``, then the host system paths and the
+root will be used. If set to ``SYSTEM_ONLY``, then the host system paths
+will be re-rooted and searched followed by the original user specified
+paths. If set to ``BOTH``, then the host system paths and the
 paths in :variable:`CMAKE_FIND_ROOT_PATH` will be searched.
