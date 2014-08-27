@@ -123,29 +123,43 @@ bool cmUuid::StringToBinary(std::string const& input,
 
 std::string cmUuid::BinaryToString(const unsigned char* input) const
 {
-  std::stringstream output;
+  std::string output;
 
   size_t inputIndex = 0;
   for(size_t i = 0; i < this->Groups.size(); ++i)
     {
     if(i != 0)
       {
-      output << "-";
+      output += '-';
       }
 
     size_t bytes = this->Groups[i];
     for(size_t j = 0; j < bytes; ++j)
       {
       int byte = input[inputIndex++];
-      if(byte <= 0xF)
-        {
-        output << "0";
-        }
-      output << std::hex << byte;
+      output += this->ByteToHex(byte);
       }
     }
 
-  return output.str();
+  return output;
+}
+
+std::string cmUuid::ByteToHex(int byte) const
+{
+  std::string result;
+  for(int i = 0; i < 2; ++i)
+    {
+    int rest = byte % 16;
+    byte /= 16;
+
+    char c = (rest < 0xA) ?
+      '0' + rest :
+      'a' + (rest - 0xA);
+
+    result = c + result;
+    }
+
+  return result;
 }
 
 bool cmUuid::StringToBinaryImpl(std::string const& input,
