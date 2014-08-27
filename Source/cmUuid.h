@@ -34,6 +34,8 @@ public:
     std::vector<unsigned char> &output) const;
 
 private:
+  std::string ByteToHex(int byte) const;
+
   void CreateHashInput(std::vector<unsigned char> const& uuidNamespace,
     std::string const& name, std::vector<unsigned char> &output) const;
 
