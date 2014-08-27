@@ -995,7 +995,7 @@ bool cmStringCommand
 
   if(args.size() < 2)
     {
-    this->SetError("no output variable specified.");
+    this->SetError("UUID sub-command requires an output variable.");
     return false;
     }
 
@@ -1013,7 +1013,7 @@ bool cmStringCommand
       ++argsIndex;
       if(argsIndex >= args.size())
         {
-        this->SetError("missing value for NAMESPACE.");
+        this->SetError("UUID sub-command, NAMESPACE requires a value.");
         return false;
         }
       uuidNamespaceString = args[argsIndex++];
@@ -1023,7 +1023,7 @@ bool cmStringCommand
       ++argsIndex;
       if(argsIndex >= args.size())
         {
-        this->SetError("missing value for NAME.");
+        this->SetError("UUID sub-command, NAME requires a value.");
         return false;
         }
       uuidName = args[argsIndex++];
@@ -1033,7 +1033,7 @@ bool cmStringCommand
       ++argsIndex;
       if(argsIndex >= args.size())
         {
-        this->SetError("missing value for TYPE.");
+        this->SetError("UUID sub-command, TYPE requires a value.");
         return false;
         }
       uuidType = args[argsIndex++];
@@ -1058,7 +1058,7 @@ bool cmStringCommand
   std::vector<unsigned char> uuidNamespace;
   if(!uuidGenerator.StringToBinary(uuidNamespaceString, uuidNamespace))
     {
-    this->SetError("malformed NAMESPACE UUID.");
+    this->SetError("UUID sub-command, malformed NAMESPACE UUID.");
     return false;
     }
 
@@ -1072,14 +1072,14 @@ bool cmStringCommand
     }
   else
     {
-    std::string e = "unknown UUID TYPE '" + uuidType + "'.";
+    std::string e = "UUID sub-command, unknown TYPE '" + uuidType + "'.";
     this->SetError(e);
     return false;
     }
 
   if(uuid.empty())
     {
-    this->SetError("UUID generation failed.");
+    this->SetError("UUID sub-command, generation failed.");
     return false;
     }
 
