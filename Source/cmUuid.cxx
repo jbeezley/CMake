@@ -76,13 +76,15 @@ void cmUuid::CreateHashInput(std::vector<unsigned char> const& uuidNamespace,
 }
 
 std::string cmUuid::FromDigest(
-  const unsigned char* digest, int version) const
+  const unsigned char* digest, unsigned char version) const
 {
-  unsigned char uuid[16] = {0};
+  typedef unsigned char byte_t;
+
+  byte_t uuid[16] = {0};
   memcpy(uuid, digest, 16);
 
   uuid[6] &= 0xF;
-  uuid[6] |= (version << 4);
+  uuid[6] |= byte_t(version << 4);
 
   uuid[8] &= 0x3F;
   uuid[8] |= 0x80;
@@ -134,7 +136,7 @@ std::string cmUuid::BinaryToString(const unsigned char* input) const
     size_t bytes = this->Groups[i];
     for(size_t j = 0; j < bytes; ++j)
       {
-      int byte = input[inputIndex++];
+      unsigned char byte = input[inputIndex++];
       output += this->ByteToHex(byte);
       }
     }
@@ -142,17 +144,17 @@ std::string cmUuid::BinaryToString(const unsigned char* input) const
   return output;
 }
 
-std::string cmUuid::ByteToHex(int byte) const
+std::string cmUuid::ByteToHex(unsigned char byte) const
 {
   std::string result;
   for(int i = 0; i < 2; ++i)
     {
-    int rest = byte % 16;
+    unsigned char rest = byte % 16;
     byte /= 16;
 
     char c = (rest < 0xA) ?
-      '0' + rest :
-      'a' + (rest - 0xA);
+      char('0' + rest) :
+      char('a' + (rest - 0xA));
 
     result = c + result;
     }
@@ -192,17 +194,17 @@ bool cmUuid::IntFromHexDigit(char input, char& output) const
 {
   if(input >= '0' && input <= '9')
     {
-    output = input - '0';
+    output = char(input - '0');
     return true;
     }
   else if(input >= 'a' && input <= 'f')
     {
-    output = input - 'a' + 0xA;
+    output = char(input - 'a' + 0xA);
     return true;
     }
   else if(input >= 'A' && input <= 'F')
     {
-    output = input - 'A' + 0xA;
+    output = char(input - 'A' + 0xA);
     return true;
     }
   else

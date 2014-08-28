@@ -33,12 +33,13 @@ public:
     std::vector<unsigned char> &output) const;
 
 private:
-  std::string ByteToHex(int byte) const;
+  std::string ByteToHex(unsigned char byte) const;
 
   void CreateHashInput(std::vector<unsigned char> const& uuidNamespace,
     std::string const& name, std::vector<unsigned char> &output) const;
 
-  std::string FromDigest(const unsigned char* digest, int version) const;
+  std::string FromDigest(const unsigned char* digest,
+    unsigned char version) const;
 
   bool StringToBinaryImpl(std::string const& input,
     std::vector<unsigned char> &output) const;
