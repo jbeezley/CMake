@@ -135,7 +135,7 @@ void cmFindCommon::RerootPaths(std::vector<std::string>& paths)
 
 //----------------------------------------------------------------------------
 void cmFindCommon::RerootPaths(std::vector<std::string>& paths,
-                               const std::vector<bool> &pathsRerootable)
+                               std::vector<bool> &pathsRerootable)
 {
 #if 0
   for(std::vector<std::string>::const_iterator i = paths.begin();
@@ -181,40 +181,43 @@ void cmFindCommon::RerootPaths(std::vector<std::string>& paths,
       this->Makefile->GetDefinition("CMAKE_STAGING_PREFIX");
 
   // Copy the original set of unrooted paths.
-  std::vector<std::string> unrootedPaths = paths;
-  paths.clear();
+  std::vector<std::string> unrootedPaths;
+  std::vector<bool> unrootedPathsRerootable;
+  unrootedPaths.swap(paths);
+  unrootedPathsRerootable.swap(pathsRerootable);
 
-  for(std::vector<std::string>::const_iterator ri = roots.begin();
-      ri != roots.end(); ++ri)
+  std::vector<std::string>::const_iterator ri;
+  for(ri = roots.begin(); ri != roots.end(); ++ri)
     {
-    std::vector<std::string>::const_iterator ui;
-    std::vector<bool>::const_iterator rri;
-    for(ui = unrootedPaths.begin(), rri = pathsRerootable.begin();
-        ui != unrootedPaths.end(); ++ui, ++rri)
+    std::vector<std::string>::const_iterator upi;
+    std::vector<bool>::const_iterator upri;
+    for(upi = unrootedPaths.begin(), upri = unrootedPathsRerootable.begin();
+        upi != unrootedPaths.end(); ++upi, ++upri)
       {
       // Place the unrooted path under the current root if it is not
       // already inside.  Skip the unrooted path if it is relative to
       // a user home directory or is empty.
       std::string rootedDir;
-      if(!*rri
-         || cmSystemTools::IsSubDirectory(ui->c_str(), ri->c_str())
+      if(!*upri
+         || cmSystemTools::IsSubDirectory(upi->c_str(), ri->c_str())
          || (stagePrefix
-             && cmSystemTools::IsSubDirectory(ui->c_str(), stagePrefix)))
+             && cmSystemTools::IsSubDirectory(upi->c_str(), stagePrefix)))
         {
-        rootedDir = *ui;
+        rootedDir = *upi;
         }
-      else if(!ui->empty() && (*ui)[0] != '~')
+      else if(!upi->empty() && *upi->begin() != '~')
         {
         // Start with the new root.
         rootedDir = *ri;
         rootedDir += "/";
 
         // Append the original path with its old root removed.
-        rootedDir += cmSystemTools::SplitPathRootComponent(ui->c_str());
+        rootedDir += cmSystemTools::SplitPathRootComponent(upi->c_str());
         }
 
       // Store the new path.
       paths.push_back(rootedDir);
+      pathsRerootable.push_back(*upri);
       }
     }
 
@@ -223,25 +226,30 @@ void cmFindCommon::RerootPaths(std::vector<std::string>& paths,
   if(this->FindRootPathMode == RootPathModeBoth)
     {
     paths.insert(paths.end(), unrootedPaths.begin(), unrootedPaths.end());
+    pathsRerootable.insert(pathsRerootable.end(),
+      unrootedPathsRerootable.begin(), unrootedPathsRerootable.end());
     }
 }
 
 //----------------------------------------------------------------------------
-void cmFindCommon::FilterPaths(std::vector<std::string>& paths,
-                               const std::set<std::string>& ignore)
+void cmFindCommon::FilterPaths(const std::set<std::string>& ignore)
 {
-  // Now filter out anything that's in the ignore set.
-  std::vector<std::string> unfiltered;
-  unfiltered.swap(paths);
+  std::vector<std::string> filtered;
+  std::vector<bool> filteredRerootable;
 
-  for(std::vector<std::string>::iterator pi = unfiltered.begin();
-      pi != unfiltered.end(); ++pi)
+  std::vector<std::string>::const_iterator pi = this->SearchPaths.begin();
+  std::vector<bool>::const_iterator pri = this->SearchPathsRerootable.begin();
+  for(; pi != this->SearchPaths.end(); ++pi, ++pri)
     {
+    // Now filter out anything that's in the ignore set.
     if (ignore.count(*pi) == 0)
       {
-      paths.push_back(*pi);
+      filtered.push_back(*pi);
+      filteredRerootable.push_back(*pri);
       }
     }
+  this->SearchPaths = filtered;
+  this->SearchPathsRerootable = filteredRerootable;
 }
 
 
@@ -464,13 +472,12 @@ void cmFindCommon::ComputeFinalPaths()
   this->RerootPaths(this->SearchPaths, this->SearchPathsRerootable);
 
   // Add a trailing slash to all paths to aid the search process.
-  for(std::vector<std::string>::iterator i = this->SearchPaths.begin();
-      i != this->SearchPaths.end(); ++i)
+  for(std::vector<std::string>::iterator pi = this->SearchPaths.begin();
+      pi != this->SearchPaths.end(); ++pi)
     {
-    std::string& p = *i;
-    if(!p.empty() && p[p.size()-1] != '/')
+    if(!pi->empty() && *pi->rbegin() != '/')
       {
-      p += "/";
+      *pi += "/";
       }
     }
 }

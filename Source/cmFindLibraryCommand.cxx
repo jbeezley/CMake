@@ -86,18 +86,24 @@ bool cmFindLibraryCommand
 //----------------------------------------------------------------------------
 void cmFindLibraryCommand::AddArchitecturePaths(const char* suffix)
 {
-  std::vector<std::string> original;
-  original.swap(this->SearchPaths);
-  for(std::vector<std::string>::iterator i = original.begin();
-      i != original.end(); ++i)
+  std::vector<std::string> originalPaths;
+  std::vector<bool> originalPathsRerootable;
+  originalPaths.swap(this->SearchPaths);
+  originalPathsRerootable.swap(this->SearchPathsRerootable);
+
+  std::vector<std::string>::const_iterator opi;
+  std::vector<bool>::const_iterator opri;
+  for(opi = originalPaths.begin(), opri = originalPathsRerootable.begin();
+      opi != originalPaths.end(); ++opi, ++opri)
     {
-    this->AddArchitecturePath(*i, 0, suffix);
+    this->AddArchitecturePath(*opi, *opri, 0, suffix);
     }
 }
 
 //----------------------------------------------------------------------------
 void cmFindLibraryCommand::AddArchitecturePath(
-  std::string const& dir, std::string::size_type start_pos,
+  std::string const& dir, bool rerootable,
+  std::string::size_type start_pos,
   const char* suffix, bool fresh)
 {
   std::string::size_type pos = dir.find("lib/", start_pos);
@@ -111,13 +117,13 @@ void cmFindLibraryCommand::AddArchitecturePath(
       {
       next_dir += dir.substr(pos+3);
       std::string::size_type next_pos = pos+3+strlen(suffix)+1;
-      this->AddArchitecturePath(next_dir, next_pos, suffix);
+      this->AddArchitecturePath(next_dir, rerootable, next_pos, suffix);
       }
 
     // Follow "lib".
     if(cmSystemTools::FileIsDirectory(cur_dir.c_str()))
       {
-      this->AddArchitecturePath(dir, pos+3+1, suffix, false);
+      this->AddArchitecturePath(dir, rerootable, pos+3+1, suffix, false);
       }
     }
   if(fresh)
@@ -127,12 +133,14 @@ void cmFindLibraryCommand::AddArchitecturePath(
     if(cmSystemTools::FileIsDirectory(cur_dir.c_str()))
       {
       this->SearchPaths.push_back(cur_dir);
+      this->SearchPathsRerootable.push_back(rerootable);
       }
 
     // Now add the original unchanged path
     if(cmSystemTools::FileIsDirectory(dir.c_str()))
       {
       this->SearchPaths.push_back(dir);
+      this->SearchPathsRerootable.push_back(rerootable);
       }
     }
 }
