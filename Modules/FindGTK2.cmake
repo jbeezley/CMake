@@ -541,7 +541,7 @@ function(_GTK2_ADD_TARGET _var)
 
         if(_${_var}_OPTIONAL_INCLUDES)
             foreach(_D ${_${_var}_OPTIONAL_INCLUDES})
-                if(NOT (_D MATCHES "-NOTFOUND\$"))
+                if(_D)
                     _GTK2_ADD_TARGET_INCLUDE_DIRS(${_var} ${_D})
                 endif()
             endforeach()
