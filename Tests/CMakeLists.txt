@@ -851,7 +851,7 @@ ${CMake_BINARY_DIR}/bin/cmake -DDIR=dev -P ${CMake_SOURCE_DIR}/Utilities/Release
       DOC "WiX Toolset light.exe location")
 
     if(WIX_LIGHT_EXECUTABLE)
-      add_test(NAME CPackWiXGenerator COMMAND ${CMAKE_CTEST_COMMAND}
+      add_test(CPackWiXGenerator ${CMAKE_CTEST_COMMAND}
         -C \${CTEST_CONFIGURATION_TYPE}
         --build-and-test
         "${CMake_SOURCE_DIR}/Tests/CPackWiXGenerator"
