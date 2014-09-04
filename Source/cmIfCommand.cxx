@@ -263,7 +263,7 @@ namespace
     }
 
   // Check definition.
-  const char* def = mf->GetDefinition(arg.GetValue());
+  const char* def = cmIfCommand::GetDefinitionIfUnquoted(mf, arg);
   return !cmSystemTools::IsOff(def);
   }
 
@@ -280,12 +280,15 @@ namespace
     else if(arg == "1")
       { return true; }
     else
-      { return !cmSystemTools::IsOff(mf->GetDefinition(arg.GetValue())); }
+      {
+      const char* def = cmIfCommand::GetDefinitionIfUnquoted(mf, arg);
+      return !cmSystemTools::IsOff(def);
+      }
     }
   else
     {
     // Old GetVariableOrNumber behavior.
-    const char* def = mf->GetDefinition(arg.GetValue());
+    const char* def = cmIfCommand::GetDefinitionIfUnquoted(mf, arg);
     if(!def && atoi(arg.c_str()))
       {
       def = arg.c_str();
@@ -912,11 +915,12 @@ bool cmIfCommand::IsTrue(const std::vector<cmExpandedCommandArgument> &args,
 }
 
 //=========================================================================
-const char* cmIfCommand::GetVariableOrString(
-    const cmExpandedCommandArgument& argument,
-    const cmMakefile* mf)
+const char* cmIfCommand::GetDefinitionIfUnquoted(
+  const cmMakefile* mf,
+  cmExpandedCommandArgument const& argument)
 {
   const char* def = mf->GetDefinition(argument.GetValue());
+
   if(def && argument.WasQuoted())
     {
     cmOStringStream e;
@@ -939,6 +943,16 @@ const char* cmIfCommand::GetVariableOrString(
         break;
       }
     }
+
+  return def;
+}
+
+//=========================================================================
+const char* cmIfCommand::GetVariableOrString(
+    const cmExpandedCommandArgument& argument,
+    const cmMakefile* mf)
+{
+  const char* def = cmIfCommand::GetDefinitionIfUnquoted(mf, argument);
 
   if(!def)
     {

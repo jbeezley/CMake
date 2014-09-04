@@ -77,6 +77,10 @@ public:
     std::string &errorString, cmMakefile *mf,
     cmake::MessageType &status);
 
+  // Filter the given variable definition based on policy CMP0054.
+  static const char* GetDefinitionIfUnquoted(
+    const cmMakefile* mf, cmExpandedCommandArgument const& argument);
+
   // Get a definition from the makefile.  If it doesn't exist,
   // return the original string.
   static const char* GetVariableOrString(
