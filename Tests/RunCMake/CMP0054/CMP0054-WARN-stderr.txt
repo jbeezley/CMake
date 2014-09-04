@@ -1,0 +1,9 @@
+CMake Warning \(dev\) at CMP0054-WARN.cmake:3 \(if\):
+  Policy CMP0054 is not set: Don't dereference quoted variables in if\(\)
+  arguments.  Run "cmake --help-policy CMP0054" for policy details.  Use the
+  cmake_policy command to set the policy and suppress this warning.
+
+  Quoted variables like 'FOO' are no longer dereferenced.
+Call Stack \(most recent call first\):
+  CMakeLists.txt:3 \(include\)
+This warning is for project developers.  Use -Wno-dev to suppress it.

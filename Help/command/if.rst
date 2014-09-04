@@ -199,3 +199,7 @@ above-documented signature accepts ``<variable|string>``:
 * The left and right hand arguments to ``AND`` and ``OR`` are independently
   tested to see if they are boolean constants, if so they are used as
   such, otherwise they are assumed to be variables and are dereferenced.
+
+To prevent ambiguity potential variables names can be quoted.
+A quoted variable name will be interpreted as a string and not dereferenced.
+See CMake Policy :policy:`CMP0054`.

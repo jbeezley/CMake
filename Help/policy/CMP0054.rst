@@ -1,0 +1,16 @@
+CMP0054
+-------
+
+Don't dereference quoted variables in if() arguments.
+
+CMake 3.1 no longer dereferences variables in if() arguments when
+they are quoted.
+
+The ``OLD`` behavior for this policy is to dereference variables even
+if they are quoted.  The ``NEW`` behavior is to omit dereferencing
+of variables that are quoted.
+
+This policy was introduced in CMake version 3.1.
+CMake version |release| warns when the policy is not set and uses
+``OLD`` behavior.  Use the :command:`cmake_policy` command to set
+it to ``OLD`` or ``NEW`` explicitly.

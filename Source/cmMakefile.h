@@ -21,6 +21,7 @@
 #include "cmTarget.h"
 #include "cmNewLineStyle.h"
 #include "cmGeneratorTarget.h"
+#include "cmExpandedCommandArgument.h"
 #include "cmake.h"
 
 #if defined(CMAKE_BUILD_WITH_CMAKE)
@@ -770,6 +771,10 @@ public:
    */
   bool ExpandArguments(std::vector<cmListFileArgument> const& inArgs,
                        std::vector<std::string>& outArgs) const;
+
+  bool ExpandArguments(std::vector<cmListFileArgument> const& inArgs,
+                       std::vector<cmExpandedCommandArgument>& outArgs) const;
+
   /**
    * Get the instance
    */
