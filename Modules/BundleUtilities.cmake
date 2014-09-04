@@ -19,7 +19,6 @@
 #    get_bundle_and_executable
 #    get_bundle_all_executables
 #    get_item_key
-#    get_item_rpaths
 #    clear_bundle_keys
 #    set_bundle_key_values
 #    get_bundle_keys
@@ -124,7 +123,7 @@
 #
 # ::
 #
-#   SET_BUNDLE_KEY_VALUES(<keys_var> <context> <item> <executable> <dirs>
+#   SET_BUNDLE_KEY_VALUES(<keys_var> <context> <item> <exepath> <dirs>
 #                         <copyflag>)
 #
 # Add a key to the list (if necessary) for the given item.  If added,
@@ -164,7 +163,7 @@
 #
 # ::
 #
-#   FIXUP_BUNDLE_ITEM(<resolved_embedded_item> <executable> <dirs>)
+#   FIXUP_BUNDLE_ITEM(<resolved_embedded_item> <exepath> <dirs>)
 #
 # Get the direct/non-system prerequisites of the resolved embedded item.
 # For each prerequisite, change the way it is referenced to the value of
@@ -286,7 +285,7 @@ function(get_bundle_main_executable bundle result_var)
 endfunction()
 
 
-function(get_dotapp_dir executable dotapp_dir_var)
+function(get_dotapp_dir exe dotapp_dir_var)
   set(s "${exe}")
 
   if(s MATCHES "/.*\\.app/")
@@ -379,24 +378,7 @@ endfunction()
 function(get_bundle_all_executables bundle exes_var)
   set(exes "")
 
-  if(UNIX)
-    find_program(find_cmd "find")
-    mark_as_advanced(find_cmd)
-  endif()
-
-  # find command is much quicker than checking every file one by one on Unix
-  # which can take long time for large bundles, and since anyway we expect
-  # executable to have execute flag set we can narrow the list much quicker.
-  if(find_cmd)
-    execute_process(COMMAND "${find_cmd}" "${bundle}" -type f -perm +0111
-      OUTPUT_VARIABLE file_list
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      )
-    string(REPLACE "\n" ";" file_list ${file_list})
-  else()
-    file(GLOB_RECURSE file_list "${bundle}/*")
-  endif()
-
+  file(GLOB_RECURSE file_list "${bundle}/*")
   foreach(f ${file_list})
     is_file_executable("${f}" is_executable)
     if(is_executable)
@@ -405,29 +387,6 @@ function(get_bundle_all_executables bundle exes_var)
   endforeach()
 
   set(${exes_var} "${exes}" PARENT_SCOPE)
-endfunction()
-
-
-function(get_item_rpaths item rpaths_var)
-  if(APPLE)
-    find_program(otool_cmd "otool")
-    mark_as_advanced(otool_cmd)
-  endif()
-
-  if(otool_cmd)
-    execute_process(
-      COMMAND "${otool_cmd}" -l "${item}"
-      OUTPUT_VARIABLE load_cmds_ov
-      )
-    string(REGEX REPLACE "[^\n]+cmd LC_RPATH\n[^\n]+\n[^\n]+path ([^\n]+) \\(offset[^\n]+\n" "rpath \\1\n" load_cmds_ov "${load_cmds_ov}")
-    string(REGEX MATCHALL "rpath [^\n]+" load_cmds_ov "${load_cmds_ov}")
-    string(REGEX REPLACE "rpath " "" load_cmds_ov "${load_cmds_ov}")
-    if(load_cmds_ov)
-      gp_append_unique(${rpaths_var} "${load_cmds_ov}")
-    endif()
-  endif()
-
-  set(${rpaths_var} ${${rpaths_var}} PARENT_SCOPE)
 endfunction()
 
 
@@ -449,13 +408,12 @@ function(clear_bundle_keys keys_var)
     set(${key}_EMBEDDED_ITEM PARENT_SCOPE)
     set(${key}_RESOLVED_EMBEDDED_ITEM PARENT_SCOPE)
     set(${key}_COPYFLAG PARENT_SCOPE)
-    set(${key}_RPATHS PARENT_SCOPE)
   endforeach()
   set(${keys_var} PARENT_SCOPE)
 endfunction()
 
 
-function(set_bundle_key_values keys_var context item executable dirs copyflag)
+function(set_bundle_key_values keys_var context item exepath dirs copyflag)
   get_filename_component(item_name "${item}" NAME)
 
   get_item_key("${item}" key)
@@ -465,16 +423,9 @@ function(set_bundle_key_values keys_var context item executable dirs copyflag)
   list(LENGTH ${keys_var} length_after)
 
   if(NOT length_before EQUAL length_after)
-    # Always use the exepath of the main bundle executable for @executable_path
-    # replacements:
-    #
-    get_filename_component(exepath "${executable}" PATH)
-
-    gp_resolve_item("${context}" "${item}" "${executable}" "${dirs}" resolved_item)
+    gp_resolve_item("${context}" "${item}" "${exepath}" "${dirs}" resolved_item)
 
     gp_item_default_embedded_path("${item}" default_embedded_path)
-
-    get_item_rpaths("${resolved_item}" rpaths)
 
     if(item MATCHES "[^/]+\\.framework/")
       # For frameworks, construct the name under the embedded path from the
@@ -511,7 +462,6 @@ function(set_bundle_key_values keys_var context item executable dirs copyflag)
     set(${key}_EMBEDDED_ITEM "${embedded_item}" PARENT_SCOPE)
     set(${key}_RESOLVED_EMBEDDED_ITEM "${resolved_embedded_item}" PARENT_SCOPE)
     set(${key}_COPYFLAG "${copyflag}" PARENT_SCOPE)
-    set(${key}_RPATHS "${rpaths}" PARENT_SCOPE)
   else()
     #message("warning: item key '${key}' already in the list, subsequent references assumed identical to first")
   endif()
@@ -523,9 +473,29 @@ function(get_bundle_keys app libs dirs keys_var)
 
   get_bundle_and_executable("${app}" bundle executable valid)
   if(valid)
+    # Always use the exepath of the main bundle executable for @executable_path
+    # replacements:
+    #
+    get_filename_component(exepath "${executable}" PATH)
+
     # But do fixups on all executables in the bundle:
     #
     get_bundle_all_executables("${bundle}" exes)
+
+    # For each extra lib, accumulate a key as well and then also accumulate
+    # any of its prerequisites. (Extra libs are typically dynamically loaded
+    # plugins: libraries that are prerequisites for full runtime functionality
+    # but that do not show up in otool -L output...)
+    #
+    foreach(lib ${libs})
+      set_bundle_key_values(${keys_var} "${lib}" "${lib}" "${exepath}" "${dirs}" 0)
+
+      set(prereqs "")
+      get_prerequisites("${lib}" prereqs 1 1 "${exepath}" "${dirs}")
+      foreach(pr ${prereqs})
+        set_bundle_key_values(${keys_var} "${lib}" "${pr}" "${exepath}" "${dirs}" 1)
+      endforeach()
+    endforeach()
 
     # For each executable found in the bundle, accumulate keys as we go.
     # The list of keys should be complete when all prerequisites of all
@@ -534,29 +504,14 @@ function(get_bundle_keys app libs dirs keys_var)
     foreach(exe ${exes})
       # Add the exe itself to the keys:
       #
-      set_bundle_key_values(${keys_var} "${exe}" "${exe}" "${executable}" "${dirs}" 0)
+      set_bundle_key_values(${keys_var} "${exe}" "${exe}" "${exepath}" "${dirs}" 0)
 
       # Add each prerequisite to the keys:
       #
       set(prereqs "")
-      get_prerequisites("${exe}" prereqs 1 1 "${executable}" "${dirs}")
+      get_prerequisites("${exe}" prereqs 1 1 "${exepath}" "${dirs}")
       foreach(pr ${prereqs})
-        set_bundle_key_values(${keys_var} "${exe}" "${pr}" "${executable}" "${dirs}" 1)
-      endforeach()
-    endforeach()
-
-    # For each extra lib, accumulate a key as well and then also accumulate
-    # any of its prerequisites. (Extra libs are typically dynamically loaded
-    # plugins: libraries that are prerequisites for full runtime functionality
-    # but that do not show up in otool -L output...)
-    #
-    foreach(lib ${libs})
-      set_bundle_key_values(${keys_var} "${lib}" "${lib}" "${executable}" "${dirs}" 0)
-
-      set(prereqs "")
-      get_prerequisites("${lib}" prereqs 1 1 "${executable}" "${dirs}")
-      foreach(pr ${prereqs})
-        set_bundle_key_values(${keys_var} "${lib}" "${pr}" "${executable}" "${dirs}" 1)
+        set_bundle_key_values(${keys_var} "${exe}" "${pr}" "${exepath}" "${dirs}" 1)
       endforeach()
     endforeach()
 
@@ -570,7 +525,6 @@ function(get_bundle_keys app libs dirs keys_var)
       set(${key}_EMBEDDED_ITEM "${${key}_EMBEDDED_ITEM}" PARENT_SCOPE)
       set(${key}_RESOLVED_EMBEDDED_ITEM "${${key}_RESOLVED_EMBEDDED_ITEM}" PARENT_SCOPE)
       set(${key}_COPYFLAG "${${key}_COPYFLAG}" PARENT_SCOPE)
-      set(${key}_RPATHS "${${key}_RPATHS}" PARENT_SCOPE)
     endforeach()
   endif()
 endfunction()
@@ -632,14 +586,6 @@ function(copy_resolved_framework_into_bundle resolved_item resolved_embedded_ite
         #message(STATUS "copying COMMAND ${CMAKE_COMMAND} -E copy_directory '${resolved_resources}' '${resolved_embedded_resources}'")
         execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${resolved_resources}" "${resolved_embedded_resources}")
       endif()
-
-      # And Info.plist, if it exists:
-      string(REGEX REPLACE "^(.*)/[^/]+/[^/]+/[^/]+$" "\\1/Contents/Info.plist" resolved_info_plist "${resolved_item}")
-      string(REGEX REPLACE "^(.*)/[^/]+/[^/]+/[^/]+$" "\\1/Contents/Info.plist" resolved_embedded_info_plist "${resolved_embedded_item}")
-      if(EXISTS "${resolved_info_plist}")
-        #message(STATUS "copying COMMAND ${CMAKE_COMMAND} -E copy_directory '${resolved_info_plist}' '${resolved_embedded_info_plist}'")
-        execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${resolved_info_plist}" "${resolved_embedded_info_plist}")
-      endif()
     endif()
     if(UNIX AND NOT APPLE)
       file(RPATH_REMOVE FILE "${resolved_embedded_item}")
@@ -649,7 +595,7 @@ function(copy_resolved_framework_into_bundle resolved_item resolved_embedded_ite
 endfunction()
 
 
-function(fixup_bundle_item resolved_embedded_item executable dirs)
+function(fixup_bundle_item resolved_embedded_item exepath dirs)
   # This item's key is "ikey":
   #
   get_item_key("${resolved_embedded_item}" ikey)
@@ -659,7 +605,7 @@ function(fixup_bundle_item resolved_embedded_item executable dirs)
   # tree, or in other varied locations around the file system, with our call to
   # install_name_tool. Make sure that doesn't happen here:
   #
-  get_dotapp_dir("${executable}" exe_dotapp_dir)
+  get_dotapp_dir("${exepath}" exe_dotapp_dir)
   string(LENGTH "${exe_dotapp_dir}/" exe_dotapp_dir_length)
   string(LENGTH "${resolved_embedded_item}" resolved_embedded_item_length)
   set(path_too_short 0)
@@ -685,7 +631,7 @@ function(fixup_bundle_item resolved_embedded_item executable dirs)
   endif()
 
   set(prereqs "")
-  get_prerequisites("${resolved_embedded_item}" prereqs 1 0 "${executable}" "${dirs}")
+  get_prerequisites("${resolved_embedded_item}" prereqs 1 0 "${exepath}" "${dirs}")
 
   set(changes "")
 
@@ -705,20 +651,12 @@ function(fixup_bundle_item resolved_embedded_item executable dirs)
     execute_process(COMMAND chmod u+w "${resolved_embedded_item}")
   endif()
 
-  foreach(rpath ${${ikey}_RPATHS})
-    set(changes ${changes} -delete_rpath "${rpath}")
-  endforeach()
-
-  if(${ikey}_EMBEDDED_ITEM)
-    set(changes ${changes} -id "${${ikey}_EMBEDDED_ITEM}")
-  endif()
-
   # Change this item's id and all of its references in one call
   # to install_name_tool:
   #
-  if(changes)
-    execute_process(COMMAND install_name_tool ${changes} "${resolved_embedded_item}")
-  endif()
+  execute_process(COMMAND install_name_tool
+    ${changes} -id "${${ikey}_EMBEDDED_ITEM}" "${resolved_embedded_item}"
+  )
 endfunction()
 
 
@@ -730,6 +668,8 @@ function(fixup_bundle app libs dirs)
 
   get_bundle_and_executable("${app}" bundle executable valid)
   if(valid)
+    get_filename_component(exepath "${executable}" PATH)
+
     message(STATUS "fixup_bundle: preparing...")
     get_bundle_keys("${app}" "${libs}" "${dirs}" keys)
 
@@ -775,7 +715,7 @@ function(fixup_bundle app libs dirs)
       math(EXPR i ${i}+1)
       if(APPLE)
         message(STATUS "${i}/${n}: fixing up '${${key}_RESOLVED_EMBEDDED_ITEM}'")
-        fixup_bundle_item("${${key}_RESOLVED_EMBEDDED_ITEM}" "${executable}" "${dirs}")
+        fixup_bundle_item("${${key}_RESOLVED_EMBEDDED_ITEM}" "${exepath}" "${dirs}")
       else()
         message(STATUS "${i}/${n}: fix-up not required on this platform '${${key}_RESOLVED_EMBEDDED_ITEM}'")
       endif()
@@ -811,12 +751,13 @@ function(verify_bundle_prerequisites bundle result_var info_var)
   foreach(f ${file_list})
     is_file_executable("${f}" is_executable)
     if(is_executable)
+      get_filename_component(exepath "${f}" PATH)
       math(EXPR count "${count} + 1")
 
       message(STATUS "executable file ${count}: ${f}")
 
       set(prereqs "")
-      get_prerequisites("${f}" prereqs 1 1 "${executable}" "")
+      get_prerequisites("${f}" prereqs 1 1 "${exepath}" "")
 
       # On the Mac,
       # "embedded" and "system" prerequisites are fine... anything else means
@@ -830,7 +771,7 @@ function(verify_bundle_prerequisites bundle result_var info_var)
 
       foreach(p ${prereqs})
         set(p_type "")
-        gp_file_type("${f}" "${p}" "${main_bundle_exe}" p_type)
+        gp_file_type("${f}" "${p}" p_type)
 
         if(APPLE)
           if(NOT "${p_type}" STREQUAL "embedded" AND NOT "${p_type}" STREQUAL "system")
