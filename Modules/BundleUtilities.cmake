@@ -632,6 +632,14 @@ function(copy_resolved_framework_into_bundle resolved_item resolved_embedded_ite
         #message(STATUS "copying COMMAND ${CMAKE_COMMAND} -E copy_directory '${resolved_resources}' '${resolved_embedded_resources}'")
         execute_process(COMMAND ${CMAKE_COMMAND} -E copy_directory "${resolved_resources}" "${resolved_embedded_resources}")
       endif()
+
+      # And Info.plist, if it exists:
+      string(REGEX REPLACE "^(.*)/[^/]+/[^/]+/[^/]+$" "\\1/Contents/Info.plist" resolved_info_plist "${resolved_item}")
+      string(REGEX REPLACE "^(.*)/[^/]+/[^/]+/[^/]+$" "\\1/Contents/Info.plist" resolved_embedded_info_plist "${resolved_embedded_item}")
+      if(EXISTS "${resolved_info_plist}")
+        #message(STATUS "copying COMMAND ${CMAKE_COMMAND} -E copy_directory '${resolved_info_plist}' '${resolved_embedded_info_plist}'")
+        execute_process(COMMAND ${CMAKE_COMMAND} -E copy "${resolved_info_plist}" "${resolved_embedded_info_plist}")
+      endif()
     endif()
     if(UNIX AND NOT APPLE)
       file(RPATH_REMOVE FILE "${resolved_embedded_item}")
