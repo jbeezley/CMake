@@ -64,6 +64,10 @@ void cmFindCommon::SelectDefaultRootPathMode()
     {
     this->FindRootPathMode = RootPathModeBoth;
     }
+  else if (rootPathMode=="SYSTEM_ONLY")
+    {
+    this->FindRootPathMode = RootPathModeSystemOnly;
+    }
 }
 
 //----------------------------------------------------------------------------
@@ -321,6 +325,10 @@ bool cmFindCommon::CheckCommonArgument(std::string const& arg)
   else if(arg == "CMAKE_FIND_ROOT_PATH_BOTH")
     {
     this->FindRootPathMode = RootPathModeBoth;
+    }
+  else if(arg == "CMAKE_FIND_ROOT_PATH_SYSTEM_ONLY")
+    {
+    this->FindRootPathMode = RootPathModeSystemOnly;
     }
   else
     {

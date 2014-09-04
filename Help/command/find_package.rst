@@ -72,6 +72,7 @@ The complete Config mode command signature is::
                [NO_CMAKE_SYSTEM_PATH]
                [NO_CMAKE_SYSTEM_PACKAGE_REGISTRY]
                [CMAKE_FIND_ROOT_PATH_BOTH |
+                CMAKE_FIND_ROOT_PATH_SYSTEM_ONLY |
                 ONLY_CMAKE_FIND_ROOT_PATH |
                 NO_CMAKE_FIND_ROOT_PATH])
 

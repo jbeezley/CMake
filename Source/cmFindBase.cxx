@@ -376,13 +376,15 @@ void cmFindBase::AddCMakeSystemVariablePath()
 //----------------------------------------------------------------------------
 void cmFindBase::AddUserHintsPath()
 {
-  this->AddPathsInternal(this->UserHints, CMakePath, true);
+  this->AddPathsInternal(this->UserHints, CMakePath,
+                         this->FindRootPathMode != RootPathModeSystemOnly);
 }
 
 //----------------------------------------------------------------------------
 void cmFindBase::AddUserGuessPath()
 {
-  this->AddPathsInternal(this->UserPaths, CMakePath, true);
+  this->AddPathsInternal(this->UserPaths, CMakePath,
+                         this->FindRootPathMode != RootPathModeSystemOnly);
 }
 
 //----------------------------------------------------------------------------

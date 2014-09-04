@@ -1442,14 +1442,16 @@ void cmFindPackageCommand::AddPrefixesCMakeSystemVariable()
 void cmFindPackageCommand::AddPrefixesUserGuess()
 {
   // Add guesses specified by the caller.
-  this->AddPathsInternal(this->UserPaths, CMakePath, true);
+  this->AddPathsInternal(this->UserPaths, CMakePath,
+                         this->FindRootPathMode != RootPathModeSystemOnly);
 }
 
 //----------------------------------------------------------------------------
 void cmFindPackageCommand::AddPrefixesUserHints()
 {
   // Add hints specified by the caller.
-  this->AddPathsInternal(this->UserHints, CMakePath, true);
+  this->AddPathsInternal(this->UserHints, CMakePath,
+                         this->FindRootPathMode != RootPathModeSystemOnly);
 }
 
 //----------------------------------------------------------------------------

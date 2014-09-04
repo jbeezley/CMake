@@ -21,3 +21,5 @@ the search order will be as described above.  If
 NO_CMAKE_FIND_ROOT_PATH is used then :variable:`CMAKE_FIND_ROOT_PATH` will not be
 used.  If ONLY_CMAKE_FIND_ROOT_PATH is used then only the re-rooted
 directories and directories below :variable:`CMAKE_STAGING_PREFIX` will be searched.
+If CMAKE_FIND_ROOT_PATH_SYSTEM_ONLY is used then the paths described above
+wll be re-rooted and searched followed by the original user-spefied paths.

@@ -32,7 +32,8 @@ protected:
 
   enum RootPathMode { RootPathModeBoth,
                       RootPathModeOnlyRootPath,
-                      RootPathModeNoRootPath };
+                      RootPathModeNoRootPath,
+                      RootPathModeSystemOnly };
 
   enum PathType { FullPath, CMakePath, EnvPath };
 
