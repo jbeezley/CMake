@@ -194,7 +194,7 @@ bool cmFindBase::ParseArguments(std::vector<std::string> const& argsIn)
   // Filter out ignored paths from the prefix list
   std::set<std::string> ignored;
   this->GetIgnoredPaths(ignored);
-  this->FilterPaths(this->SearchPaths, ignored);
+  this->FilterPaths(ignored);
 
   this->ComputeFinalPaths();
 
@@ -376,51 +376,51 @@ void cmFindBase::AddCMakeSystemVariablePath()
 //----------------------------------------------------------------------------
 void cmFindBase::AddUserHintsPath()
 {
-  this->AddPathsInternal(this->UserHints, CMakePath);
+  this->AddPathsInternal(this->UserHints, CMakePath, true);
 }
 
 //----------------------------------------------------------------------------
 void cmFindBase::AddUserGuessPath()
 {
-  this->AddPathsInternal(this->UserPaths, CMakePath);
+  this->AddPathsInternal(this->UserPaths, CMakePath, true);
 }
 
 //----------------------------------------------------------------------------
 void cmFindBase::AddPathSuffixes()
 {
-  std::vector<std::string>& paths = this->SearchPaths;
-  std::vector<std::string> finalPath = paths;
-  std::vector<std::string>::iterator i;
-  // clear the path
-  paths.clear();
-  // convert all paths to unix slashes and add search path suffixes
-  // if there are any
-  for(i = finalPath.begin();
-      i != finalPath.end(); ++i)
+  std::vector<std::string> adjustedPaths;
+  std::vector<bool> adjustedPathsRerootable;
+
+  std::vector<std::string>::iterator pi = this->SearchPaths.begin();
+  std::vector<bool>::const_iterator pri = this->SearchPathsRerootable.begin();
+  for(; pi != this->SearchPaths.end(); ++pi, ++pri)
     {
-    cmSystemTools::ConvertToUnixSlashes(*i);
-    // copy each finalPath combined with SearchPathSuffixes
-    // to the SearchPaths ivar
-    for(std::vector<std::string>::iterator j =
-          this->SearchPathSuffixes.begin();
-        j != this->SearchPathSuffixes.end(); ++j)
+    // Convert all paths to unix slashes
+    cmSystemTools::ConvertToUnixSlashes(*pi);
+
+    // Add trailing slash if appropriate
+    if(!pi->empty() && *pi->rbegin() != '/')
       {
-      // if *i is only / then do not add a //
-      // this will get incorrectly considered a network
-      // path on windows and cause huge delays.
-      std::string p = *i;
-      if(p.size() && p[p.size()-1] != '/')
-        {
-        p += std::string("/");
-        }
-      p +=  *j;
-      // add to all paths because the search path may be modified
-      // later with lib being replaced for lib64 which may exist
-      paths.push_back(p);
+      *pi += std::string("/");
       }
-    // now put the path without the path suffixes in the SearchPaths
-    paths.push_back(*i);
+
+    // Add suffix to all paths because the search path may be modified
+    // later with lib being replaced for lib64 which may exist
+    std::vector<std::string>::iterator si;
+    for(si = this->SearchPathSuffixes.begin();
+        si != this->SearchPathSuffixes.end(); ++si)
+      {
+      adjustedPaths.push_back(*pi+*si);
+      adjustedPathsRerootable.push_back(*pri);
+      }
+
+    // And lastly, keep the originals
+    adjustedPaths.push_back(*pi);
+    adjustedPathsRerootable.push_back(*pri);
     }
+
+  this->SearchPaths = adjustedPaths;
+  this->SearchPathsRerootable = adjustedPathsRerootable;
 }
 
 void cmFindBase::PrintFindStuff()
