@@ -18,15 +18,15 @@
 
 
 static std::string cmIfCommandError(
-  cmMakefile* mf, std::vector<std::string> const& args)
+  cmMakefile* mf, std::vector<cmExpandedCommandArgument> const& args)
 {
   cmLocalGenerator* lg = mf->GetLocalGenerator();
   std::string err = "given arguments:\n ";
-  for(std::vector<std::string>::const_iterator i = args.begin();
+  for(std::vector<cmExpandedCommandArgument>::const_iterator i = args.begin();
       i != args.end(); ++i)
     {
     err += " ";
-    err += lg->EscapeForCMake(*i);
+    err += lg->EscapeForCMake(i->GetValue());
     }
   err += "\n";
   return err;
@@ -103,7 +103,7 @@ IsFunctionBlocked(const cmListFileFunction& lff,
 
             std::string errorString;
 
-            std::vector<std::string> expandedArguments;
+            std::vector<cmExpandedCommandArgument> expandedArguments;
             mf.ExpandArguments(this->Functions[c].Arguments,
                                expandedArguments);
 
@@ -185,7 +185,7 @@ bool cmIfCommand
 {
   std::string errorString;
 
-  std::vector<std::string> expandedArguments;
+  std::vector<cmExpandedCommandArgument> expandedArguments;
   this->Makefile->ExpandArguments(args, expandedArguments);
 
   cmake::MessageType status;
@@ -225,8 +225,10 @@ bool cmIfCommand
 
 namespace
 {
+  typedef std::list<cmExpandedCommandArgument> cmArgumentList;
+
   //=========================================================================
-  bool GetBooleanValue(std::string& arg, cmMakefile* mf)
+  bool GetBooleanValue(cmExpandedCommandArgument& arg, cmMakefile* mf)
   {
   // Check basic constants.
   if (arg == "0")
@@ -261,13 +263,14 @@ namespace
     }
 
   // Check definition.
-  const char* def = mf->GetDefinition(arg);
+  const char* def = mf->GetDefinition(arg.GetValue());
   return !cmSystemTools::IsOff(def);
   }
 
   //=========================================================================
   // Boolean value behavior from CMake 2.6.4 and below.
-  bool GetBooleanValueOld(std::string const& arg, cmMakefile* mf, bool one)
+  bool GetBooleanValueOld(cmExpandedCommandArgument const& arg,
+    cmMakefile* mf, bool one)
   {
   if(one)
     {
@@ -277,12 +280,12 @@ namespace
     else if(arg == "1")
       { return true; }
     else
-      { return !cmSystemTools::IsOff(mf->GetDefinition(arg)); }
+      { return !cmSystemTools::IsOff(mf->GetDefinition(arg.GetValue())); }
     }
   else
     {
     // Old GetVariableOrNumber behavior.
-    const char* def = mf->GetDefinition(arg);
+    const char* def = mf->GetDefinition(arg.GetValue());
     if(!def && atoi(arg.c_str()))
       {
       def = arg.c_str();
@@ -294,7 +297,7 @@ namespace
   //=========================================================================
   // returns the resulting boolean value
   bool GetBooleanValueWithAutoDereference(
-    std::string &newArg,
+    cmExpandedCommandArgument &newArg,
     cmMakefile *makefile,
     std::string &errorString,
     cmPolicies::PolicyStatus Policy12Status,
@@ -321,7 +324,7 @@ namespace
       case cmPolicies::WARN:
         {
         cmPolicies* policies = makefile->GetPolicies();
-        errorString = "An argument named \"" + newArg
+        errorString = "An argument named \"" + newArg.GetValue()
           + "\" appears in a conditional statement.  "
           + policies->GetPolicyWarning(cmPolicies::CMP0012);
         status = cmake::AUTHOR_WARNING;
@@ -332,7 +335,7 @@ namespace
       case cmPolicies::REQUIRED_ALWAYS:
         {
         cmPolicies* policies = makefile->GetPolicies();
-        errorString = "An argument named \"" + newArg
+        errorString = "An argument named \"" + newArg.GetValue()
           + "\" appears in a conditional statement.  "
           + policies->GetRequiredPolicyError(cmPolicies::CMP0012);
         status = cmake::FATAL_ERROR;
@@ -345,9 +348,9 @@ namespace
   }
 
   //=========================================================================
-  void IncrementArguments(std::list<std::string> &newArgs,
-                          std::list<std::string>::iterator &argP1,
-                          std::list<std::string>::iterator &argP2)
+  void IncrementArguments(cmArgumentList &newArgs,
+                          cmArgumentList::iterator &argP1,
+                          cmArgumentList::iterator &argP2)
   {
     if (argP1  != newArgs.end())
       {
@@ -363,18 +366,18 @@ namespace
   //=========================================================================
   // helper function to reduce code duplication
   void HandlePredicate(bool value, int &reducible,
-                       std::list<std::string>::iterator &arg,
-                       std::list<std::string> &newArgs,
-                       std::list<std::string>::iterator &argP1,
-                       std::list<std::string>::iterator &argP2)
+                       cmArgumentList::iterator &arg,
+                       cmArgumentList &newArgs,
+                       cmArgumentList::iterator &argP1,
+                       cmArgumentList::iterator &argP2)
   {
     if(value)
       {
-      *arg = "1";
+      *arg = cmExpandedCommandArgument("1", true);
       }
     else
       {
-      *arg = "0";
+      *arg = cmExpandedCommandArgument("0", true);
       }
     newArgs.erase(argP1);
     argP1 = arg;
@@ -385,18 +388,18 @@ namespace
   //=========================================================================
   // helper function to reduce code duplication
   void HandleBinaryOp(bool value, int &reducible,
-                       std::list<std::string>::iterator &arg,
-                       std::list<std::string> &newArgs,
-                       std::list<std::string>::iterator &argP1,
-                       std::list<std::string>::iterator &argP2)
+                       cmArgumentList::iterator &arg,
+                       cmArgumentList &newArgs,
+                       cmArgumentList::iterator &argP1,
+                       cmArgumentList::iterator &argP2)
   {
     if(value)
       {
-      *arg = "1";
+      *arg = cmExpandedCommandArgument("1", true);
       }
     else
       {
-      *arg = "0";
+      *arg = cmExpandedCommandArgument("0", true);
       }
     newArgs.erase(argP2);
     newArgs.erase(argP1);
@@ -407,7 +410,7 @@ namespace
 
   //=========================================================================
   // level 0 processes parenthetical expressions
-  bool HandleLevel0(std::list<std::string> &newArgs,
+  bool HandleLevel0(cmArgumentList &newArgs,
                     cmMakefile *makefile,
                     std::string &errorString,
                     cmake::MessageType &status)
@@ -416,13 +419,13 @@ namespace
   do
     {
     reducible = 0;
-    std::list<std::string>::iterator arg = newArgs.begin();
+    cmArgumentList::iterator arg = newArgs.begin();
     while (arg != newArgs.end())
       {
       if (*arg == "(")
         {
         // search for the closing paren for this opening one
-        std::list<std::string>::iterator argClose;
+        cmArgumentList::iterator argClose;
         argClose = arg;
         argClose++;
         unsigned int depth = 1;
@@ -445,10 +448,10 @@ namespace
           return false;
           }
         // store the reduced args in this vector
-        std::vector<std::string> newArgs2;
+        std::vector<cmExpandedCommandArgument> newArgs2;
 
         // copy to the list structure
-        std::list<std::string>::iterator argP1 = arg;
+        cmArgumentList::iterator argP1 = arg;
         argP1++;
         for(; argP1 != argClose; argP1++)
           {
@@ -461,11 +464,11 @@ namespace
           cmIfCommand::IsTrue(newArgs2, errorString, makefile, status);
         if(value)
           {
-          *arg = "1";
+          *arg = cmExpandedCommandArgument("1", true);
           }
         else
           {
-          *arg = "0";
+          *arg = cmExpandedCommandArgument("0", true);
           }
         argP1 = arg;
         argP1++;
@@ -481,7 +484,7 @@ namespace
 
   //=========================================================================
   // level one handles most predicates except for NOT
-  bool HandleLevel1(std::list<std::string> &newArgs,
+  bool HandleLevel1(cmArgumentList &newArgs,
                     cmMakefile *makefile,
                     std::string &, cmake::MessageType &)
   {
@@ -489,9 +492,9 @@ namespace
   do
     {
     reducible = 0;
-    std::list<std::string>::iterator arg = newArgs.begin();
-    std::list<std::string>::iterator argP1;
-    std::list<std::string>::iterator argP2;
+    cmArgumentList::iterator arg = newArgs.begin();
+    cmArgumentList::iterator argP1;
+    cmArgumentList::iterator argP2;
     while (arg != newArgs.end())
       {
       argP1 = arg;
@@ -500,35 +503,35 @@ namespace
       if (*arg == "EXISTS" && argP1  != newArgs.end())
         {
         HandlePredicate(
-          cmSystemTools::FileExists((argP1)->c_str()),
+          cmSystemTools::FileExists(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a directory with this name exist
       if (*arg == "IS_DIRECTORY" && argP1  != newArgs.end())
         {
         HandlePredicate(
-          cmSystemTools::FileIsDirectory((argP1)->c_str()),
+          cmSystemTools::FileIsDirectory(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a symlink with this name exist
       if (*arg == "IS_SYMLINK" && argP1  != newArgs.end())
         {
         HandlePredicate(
-          cmSystemTools::FileIsSymlink((argP1)->c_str()),
+          cmSystemTools::FileIsSymlink(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // is the given path an absolute path ?
       if (*arg == "IS_ABSOLUTE" && argP1  != newArgs.end())
         {
         HandlePredicate(
-          cmSystemTools::FileIsFullPath((argP1)->c_str()),
+          cmSystemTools::FileIsFullPath(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a command exist
       if (*arg == "COMMAND" && argP1  != newArgs.end())
         {
         HandlePredicate(
-          makefile->CommandExists((argP1)->c_str()),
+          makefile->CommandExists(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a policy exist
@@ -536,30 +539,31 @@ namespace
         {
         cmPolicies::PolicyID pid;
         HandlePredicate(
-          makefile->GetPolicies()->GetPolicyID((argP1)->c_str(), pid),
-          reducible, arg, newArgs, argP1, argP2);
+          makefile->GetPolicies()->GetPolicyID(
+            argP1->c_str(), pid),
+            reducible, arg, newArgs, argP1, argP2);
         }
       // does a target exist
       if (*arg == "TARGET" && argP1 != newArgs.end())
         {
         HandlePredicate(
-          makefile->FindTargetToUse(*argP1)?true:false,
+          makefile->FindTargetToUse(argP1->GetValue())?true:false,
           reducible, arg, newArgs, argP1, argP2);
         }
       // is a variable defined
       if (*arg == "DEFINED" && argP1  != newArgs.end())
         {
-        size_t argP1len = argP1->size();
+        size_t argP1len = argP1->GetValue().size();
         bool bdef = false;
-        if(argP1len > 4 && argP1->substr(0, 4) == "ENV{" &&
-           argP1->operator[](argP1len-1) == '}')
+        if(argP1len > 4 && argP1->GetValue().substr(0, 4) == "ENV{" &&
+           argP1->GetValue().operator[](argP1len-1) == '}')
           {
-          std::string env = argP1->substr(4, argP1len-5);
+          std::string env = argP1->GetValue().substr(4, argP1len-5);
           bdef = cmSystemTools::GetEnv(env.c_str())?true:false;
           }
         else
           {
-          bdef = makefile->IsDefinitionSet(*(argP1));
+          bdef = makefile->IsDefinitionSet(argP1->GetValue());
           }
         HandlePredicate(bdef, reducible, arg, newArgs, argP1, argP2);
         }
@@ -572,7 +576,7 @@ namespace
 
   //=========================================================================
   // level two handles most binary operations except for AND  OR
-  bool HandleLevel2(std::list<std::string> &newArgs,
+  bool HandleLevel2(cmArgumentList &newArgs,
                     cmMakefile *makefile,
                     std::string &errorString,
                     cmake::MessageType &status)
@@ -583,9 +587,9 @@ namespace
   do
     {
     reducible = 0;
-    std::list<std::string>::iterator arg = newArgs.begin();
-    std::list<std::string>::iterator argP1;
-    std::list<std::string>::iterator argP2;
+    cmArgumentList::iterator arg = newArgs.begin();
+    cmArgumentList::iterator argP1;
+    cmArgumentList::iterator argP2;
     while (arg != newArgs.end())
       {
       argP1 = arg;
@@ -594,7 +598,7 @@ namespace
         *(argP1) == "MATCHES")
         {
         def = cmIfCommand::GetVariableOrString(*arg, makefile);
-        const char* rex = (argP2)->c_str();
+        const char* rex = argP2->c_str();
         makefile->ClearMatches();
         cmsys::RegularExpression regEntry;
         if ( !regEntry.compile(rex) )
@@ -608,11 +612,11 @@ namespace
         if (regEntry.find(def))
           {
           makefile->StoreMatches(regEntry);
-          *arg = "1";
+          *arg = cmExpandedCommandArgument("1", true);
           }
         else
           {
-          *arg = "0";
+          *arg = cmExpandedCommandArgument("0", true);
           }
         newArgs.erase(argP2);
         newArgs.erase(argP1);
@@ -623,7 +627,7 @@ namespace
 
       if (argP1 != newArgs.end() && *arg == "MATCHES")
         {
-        *arg = "0";
+        *arg = cmExpandedCommandArgument("0", true);
         newArgs.erase(argP1);
         argP1 = arg;
         IncrementArguments(newArgs,argP1,argP2);
@@ -710,8 +714,8 @@ namespace
           *(argP1) == "IS_NEWER_THAN")
         {
         int fileIsNewer=0;
-        bool success=cmSystemTools::FileTimeCompare(arg->c_str(),
-            (argP2)->c_str(),
+        bool success=cmSystemTools::FileTimeCompare(arg->GetValue(),
+            (argP2)->GetValue(),
             &fileIsNewer);
         HandleBinaryOp(
           (success==false || fileIsNewer==1 || fileIsNewer==0),
@@ -727,7 +731,7 @@ namespace
 
   //=========================================================================
   // level 3 handles NOT
-  bool HandleLevel3(std::list<std::string> &newArgs,
+  bool HandleLevel3(cmArgumentList &newArgs,
                     cmMakefile *makefile,
                     std::string &errorString,
                     cmPolicies::PolicyStatus Policy12Status,
@@ -737,16 +741,17 @@ namespace
   do
     {
     reducible = 0;
-    std::list<std::string>::iterator arg = newArgs.begin();
-    std::list<std::string>::iterator argP1;
-    std::list<std::string>::iterator argP2;
+    cmArgumentList::iterator arg = newArgs.begin();
+    cmArgumentList::iterator argP1;
+    cmArgumentList::iterator argP2;
     while (arg != newArgs.end())
       {
       argP1 = arg;
       IncrementArguments(newArgs,argP1,argP2);
       if (argP1 != newArgs.end() && *arg == "NOT")
         {
-        bool rhs = GetBooleanValueWithAutoDereference(*argP1, makefile,
+        bool rhs = GetBooleanValueWithAutoDereference(*argP1,
+                                                      makefile,
                                                       errorString,
                                                       Policy12Status,
                                                       status);
@@ -761,7 +766,7 @@ namespace
 
   //=========================================================================
   // level 4 handles AND OR
-  bool HandleLevel4(std::list<std::string> &newArgs,
+  bool HandleLevel4(cmArgumentList &newArgs,
                     cmMakefile *makefile,
                     std::string &errorString,
                     cmPolicies::PolicyStatus Policy12Status,
@@ -773,9 +778,9 @@ namespace
   do
     {
     reducible = 0;
-    std::list<std::string>::iterator arg = newArgs.begin();
-    std::list<std::string>::iterator argP1;
-    std::list<std::string>::iterator argP2;
+    cmArgumentList::iterator arg = newArgs.begin();
+    cmArgumentList::iterator argP1;
+    cmArgumentList::iterator argP2;
     while (arg != newArgs.end())
       {
       argP1 = arg;
@@ -835,7 +840,7 @@ namespace
 // directly. AND OR take variables or the values 0 or 1.
 
 
-bool cmIfCommand::IsTrue(const std::vector<std::string> &args,
+bool cmIfCommand::IsTrue(const std::vector<cmExpandedCommandArgument> &args,
                          std::string &errorString, cmMakefile *makefile,
                          cmake::MessageType &status)
 {
@@ -848,7 +853,7 @@ bool cmIfCommand::IsTrue(const std::vector<std::string> &args,
     }
 
   // store the reduced args in this vector
-  std::list<std::string> newArgs;
+  cmArgumentList newArgs;
 
   // copy to the list structure
   for(unsigned int i = 0; i < args.size(); ++i)
@@ -907,13 +912,38 @@ bool cmIfCommand::IsTrue(const std::vector<std::string> &args,
 }
 
 //=========================================================================
-const char* cmIfCommand::GetVariableOrString(const std::string& str,
-                                             const cmMakefile* mf)
+const char* cmIfCommand::GetVariableOrString(
+    const cmExpandedCommandArgument& argument,
+    const cmMakefile* mf)
 {
-  const char* def = mf->GetDefinition(str);
+  const char* def = mf->GetDefinition(argument.GetValue());
+  if(def && argument.WasQuoted())
+    {
+    cmOStringStream e;
+    switch(mf->GetPolicyStatus(cmPolicies::CMP0054))
+      {
+      case cmPolicies::WARN:
+        e << (mf->GetPolicies()->GetPolicyWarning(
+          cmPolicies::CMP0054)) << "\n";
+        e << "Quoted variables like '" << argument.GetValue() <<
+          "' are no longer dereferenced.";
+
+        mf->IssueMessage(cmake::AUTHOR_WARNING, e.str());
+        break;
+      case cmPolicies::OLD:
+        break;
+      case cmPolicies::REQUIRED_ALWAYS:
+      case cmPolicies::REQUIRED_IF_USED:
+      case cmPolicies::NEW:
+        def = 0;
+        break;
+      }
+    }
+
   if(!def)
     {
-    def = str.c_str();
+    def = argument.c_str();
     }
+
   return def;
 }
