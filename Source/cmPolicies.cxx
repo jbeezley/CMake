@@ -362,7 +362,7 @@ cmPolicies::cmPolicies()
 
   this->DefinePolicy(
     CMP0054, "CMP0054",
-    "Don't dereference quoted variables in if() arguments.",
+    "Only interpret if() arguments as variables or keywords when unquoted.",
     3,1,0, cmPolicies::WARN);
 }
 

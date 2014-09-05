@@ -228,6 +228,47 @@ namespace
   typedef std::list<cmExpandedCommandArgument> cmArgumentList;
 
   //=========================================================================
+  bool IsKeyword(std::string const& keyword,
+    cmExpandedCommandArgument& argument,
+    cmMakefile* mf)
+  {
+    bool isKeyword = argument.GetValue() == keyword;
+
+    if(isKeyword && argument.WasQuoted())
+      {
+      cmOStringStream e;
+      switch(mf->GetPolicyStatus(cmPolicies::CMP0054))
+        {
+        case cmPolicies::WARN:
+          {
+          bool hasBeenReported = mf->HasCMP0054AlreadyBeenReported(
+            mf->GetBacktrace()[0], argument.GetValue());
+
+          if(!hasBeenReported)
+            {
+            e << (mf->GetPolicies()->GetPolicyWarning(
+              cmPolicies::CMP0054)) << "\n";
+            e << "Quoted keywords like '" << argument.GetValue() <<
+              "' are no longer interpreted as keywords.";
+
+            mf->IssueMessage(cmake::AUTHOR_WARNING, e.str());
+            }
+          }
+          break;
+        case cmPolicies::OLD:
+          break;
+        case cmPolicies::REQUIRED_ALWAYS:
+        case cmPolicies::REQUIRED_IF_USED:
+        case cmPolicies::NEW:
+          isKeyword = false;
+          break;
+        }
+      }
+
+    return isKeyword;
+  }
+
+  //=========================================================================
   bool GetBooleanValue(cmExpandedCommandArgument& arg, cmMakefile* mf)
   {
   // Check basic constants.
@@ -425,7 +466,7 @@ namespace
     cmArgumentList::iterator arg = newArgs.begin();
     while (arg != newArgs.end())
       {
-      if (*arg == "(")
+      if (IsKeyword("(", *arg, makefile))
         {
         // search for the closing paren for this opening one
         cmArgumentList::iterator argClose;
@@ -434,11 +475,11 @@ namespace
         unsigned int depth = 1;
         while (argClose != newArgs.end() && depth)
           {
-          if (*argClose == "(")
+          if (IsKeyword("(", *argClose, makefile))
             {
               depth++;
             }
-          if (*argClose == ")")
+          if (IsKeyword(")", *argClose, makefile))
             {
               depth--;
             }
@@ -503,42 +544,42 @@ namespace
       argP1 = arg;
       IncrementArguments(newArgs,argP1,argP2);
       // does a file exist
-      if (*arg == "EXISTS" && argP1  != newArgs.end())
+      if (IsKeyword("EXISTS", *arg, makefile) && argP1  != newArgs.end())
         {
         HandlePredicate(
           cmSystemTools::FileExists(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a directory with this name exist
-      if (*arg == "IS_DIRECTORY" && argP1  != newArgs.end())
+      if (IsKeyword("IS_DIRECTORY", *arg, makefile) && argP1  != newArgs.end())
         {
         HandlePredicate(
           cmSystemTools::FileIsDirectory(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a symlink with this name exist
-      if (*arg == "IS_SYMLINK" && argP1  != newArgs.end())
+      if (IsKeyword("IS_SYMLINK", *arg, makefile) && argP1  != newArgs.end())
         {
         HandlePredicate(
           cmSystemTools::FileIsSymlink(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // is the given path an absolute path ?
-      if (*arg == "IS_ABSOLUTE" && argP1  != newArgs.end())
+      if (IsKeyword("IS_ABSOLUTE", *arg, makefile) && argP1  != newArgs.end())
         {
         HandlePredicate(
           cmSystemTools::FileIsFullPath(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a command exist
-      if (*arg == "COMMAND" && argP1  != newArgs.end())
+      if (IsKeyword("COMMAND", *arg, makefile) && argP1  != newArgs.end())
         {
         HandlePredicate(
           makefile->CommandExists(argP1->c_str()),
           reducible, arg, newArgs, argP1, argP2);
         }
       // does a policy exist
-      if (*arg == "POLICY" && argP1 != newArgs.end())
+      if (IsKeyword("POLICY", *arg, makefile) && argP1 != newArgs.end())
         {
         cmPolicies::PolicyID pid;
         HandlePredicate(
@@ -547,14 +588,14 @@ namespace
             reducible, arg, newArgs, argP1, argP2);
         }
       // does a target exist
-      if (*arg == "TARGET" && argP1 != newArgs.end())
+      if (IsKeyword("TARGET", *arg, makefile) && argP1 != newArgs.end())
         {
         HandlePredicate(
           makefile->FindTargetToUse(argP1->GetValue())?true:false,
           reducible, arg, newArgs, argP1, argP2);
         }
       // is a variable defined
-      if (*arg == "DEFINED" && argP1  != newArgs.end())
+      if (IsKeyword("DEFINED", *arg, makefile) && argP1  != newArgs.end())
         {
         size_t argP1len = argP1->GetValue().size();
         bool bdef = false;
@@ -598,7 +639,7 @@ namespace
       argP1 = arg;
       IncrementArguments(newArgs,argP1,argP2);
       if (argP1 != newArgs.end() && argP2 != newArgs.end() &&
-        *(argP1) == "MATCHES")
+        IsKeyword("MATCHES", *argP1, makefile))
         {
         def = cmIfCommand::GetVariableOrString(*arg, makefile);
         const char* rex = argP2->c_str();
@@ -628,7 +669,7 @@ namespace
         reducible = 1;
         }
 
-      if (argP1 != newArgs.end() && *arg == "MATCHES")
+      if (argP1 != newArgs.end() && IsKeyword("MATCHES", *arg, makefile))
         {
         *arg = cmExpandedCommandArgument("0", true);
         newArgs.erase(argP1);
@@ -638,8 +679,9 @@ namespace
         }
 
       if (argP1 != newArgs.end() && argP2 != newArgs.end() &&
-        (*(argP1) == "LESS" || *(argP1) == "GREATER" ||
-         *(argP1) == "EQUAL"))
+        (IsKeyword("LESS", *argP1, makefile) ||
+         IsKeyword("GREATER", *argP1, makefile) ||
+         IsKeyword("EQUAL", *argP1, makefile)))
         {
         def = cmIfCommand::GetVariableOrString(*arg, makefile);
         def2 = cmIfCommand::GetVariableOrString(*argP2, makefile);
@@ -668,9 +710,9 @@ namespace
         }
 
       if (argP1 != newArgs.end() && argP2 != newArgs.end() &&
-        (*(argP1) == "STRLESS" ||
-         *(argP1) == "STREQUAL" ||
-         *(argP1) == "STRGREATER"))
+        (IsKeyword("STRLESS", *argP1, makefile) ||
+         IsKeyword("STREQUAL", *argP1, makefile) ||
+         IsKeyword("STRGREATER", *argP1, makefile)))
         {
         def = cmIfCommand::GetVariableOrString(*arg, makefile);
         def2 = cmIfCommand::GetVariableOrString(*argP2, makefile);
@@ -693,8 +735,9 @@ namespace
         }
 
       if (argP1 != newArgs.end() && argP2 != newArgs.end() &&
-        (*(argP1) == "VERSION_LESS" || *(argP1) == "VERSION_GREATER" ||
-         *(argP1) == "VERSION_EQUAL"))
+        (IsKeyword("VERSION_LESS", *argP1, makefile) ||
+         IsKeyword("VERSION_GREATER", *argP1, makefile) ||
+         IsKeyword("VERSION_EQUAL", *argP1, makefile)))
         {
         def = cmIfCommand::GetVariableOrString(*arg, makefile);
         def2 = cmIfCommand::GetVariableOrString(*argP2, makefile);
@@ -714,7 +757,7 @@ namespace
 
       // is file A newer than file B
       if (argP1 != newArgs.end() && argP2 != newArgs.end() &&
-          *(argP1) == "IS_NEWER_THAN")
+          IsKeyword("IS_NEWER_THAN", *argP1, makefile))
         {
         int fileIsNewer=0;
         bool success=cmSystemTools::FileTimeCompare(arg->GetValue(),
@@ -751,7 +794,7 @@ namespace
       {
       argP1 = arg;
       IncrementArguments(newArgs,argP1,argP2);
-      if (argP1 != newArgs.end() && *arg == "NOT")
+      if (argP1 != newArgs.end() && IsKeyword("NOT", *arg, makefile))
         {
         bool rhs = GetBooleanValueWithAutoDereference(*argP1,
                                                       makefile,
@@ -788,7 +831,7 @@ namespace
       {
       argP1 = arg;
       IncrementArguments(newArgs,argP1,argP2);
-      if (argP1 != newArgs.end() && *(argP1) == "AND" &&
+      if (argP1 != newArgs.end() && IsKeyword("AND", *argP1, makefile) &&
         argP2 != newArgs.end())
         {
         lhs = GetBooleanValueWithAutoDereference(*arg, makefile,
@@ -803,7 +846,7 @@ namespace
           reducible, arg, newArgs, argP1, argP2);
         }
 
-      if (argP1 != newArgs.end() && *(argP1) == "OR" &&
+      if (argP1 != newArgs.end() && IsKeyword("OR", *argP1, makefile) &&
         argP2 != newArgs.end())
         {
         lhs = GetBooleanValueWithAutoDereference(*arg, makefile,
@@ -927,12 +970,20 @@ const char* cmIfCommand::GetDefinitionIfUnquoted(
     switch(mf->GetPolicyStatus(cmPolicies::CMP0054))
       {
       case cmPolicies::WARN:
-        e << (mf->GetPolicies()->GetPolicyWarning(
-          cmPolicies::CMP0054)) << "\n";
-        e << "Quoted variables like '" << argument.GetValue() <<
-          "' are no longer dereferenced.";
+        {
+        bool hasBeenReported = mf->HasCMP0054AlreadyBeenReported(
+          mf->GetBacktrace()[0], argument.GetValue());
 
-        mf->IssueMessage(cmake::AUTHOR_WARNING, e.str());
+        if(!hasBeenReported)
+          {
+          e << (mf->GetPolicies()->GetPolicyWarning(
+            cmPolicies::CMP0054)) << "\n";
+          e << "Quoted variables like '" << argument.GetValue() <<
+            "' are no longer dereferenced.";
+
+          mf->IssueMessage(cmake::AUTHOR_WARNING, e.str());
+          }
+        }
         break;
       case cmPolicies::OLD:
         break;

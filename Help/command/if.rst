@@ -200,6 +200,7 @@ above-documented signature accepts ``<variable|string>``:
   tested to see if they are boolean constants, if so they are used as
   such, otherwise they are assumed to be variables and are dereferenced.
 
-To prevent ambiguity potential variables names can be quoted.
-A quoted variable name will be interpreted as a string and not dereferenced.
+To prevent ambiguity, potential variable or keyword names can be
+quoted or bracketed.  A quoted or bracketed variable or keyword will be
+interpreted as a string and not dereferenced or interpreted.
 See CMake Policy :policy:`CMP0054`.

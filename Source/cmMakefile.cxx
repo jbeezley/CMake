@@ -4980,12 +4980,14 @@ void cmMakefile::PopPolicyBarrier(bool reportError)
   this->PolicyBarriers.pop_back();
 }
 
+//----------------------------------------------------------------------------
 bool cmMakefile::SetPolicyVersion(const char *version)
 {
   return this->GetCMakeInstance()->GetPolicies()->
     ApplyPolicyVersion(this,version);
 }
 
+//----------------------------------------------------------------------------
 cmPolicies *cmMakefile::GetPolicies() const
 {
   if (!this->GetCMakeInstance())
@@ -4993,6 +4995,23 @@ cmPolicies *cmMakefile::GetPolicies() const
     return 0;
   }
   return this->GetCMakeInstance()->GetPolicies();
+}
+
+//----------------------------------------------------------------------------
+bool cmMakefile::HasCMP0054AlreadyBeenReported(
+  cmListFileContext context, std::string name) const
+{
+  cmCMP0054Id id(context, name);
+
+  bool alreadyReported =
+    this->CMP0054ReportedIds.find(id) != this->CMP0054ReportedIds.end();
+
+  if(!alreadyReported)
+    {
+    this->CMP0054ReportedIds.insert(id);
+    }
+
+  return alreadyReported;
 }
 
 //----------------------------------------------------------------------------
