@@ -109,7 +109,8 @@ public:
     /// INTERFACE_INCLUDE_DIRECTORIES
 
     CMP0053, ///< Simplify variable reference and escape sequence evaluation
-    CMP0054, ///< Don't dereference quoted variables in if() arguments
+    CMP0054, ///< Only interpret if() arguments as variables
+    /// or keywords when unquoted.
 
     /** \brief Always the last entry.
      *

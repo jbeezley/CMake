@@ -376,7 +376,40 @@ public:
   /**
     * Get the Policies Instance
     */
- cmPolicies *GetPolicies() const;
+  cmPolicies *GetPolicies() const;
+
+  struct cmCMP0054Id
+  {
+    cmCMP0054Id(cmListFileContext const& context, std::string const& name):
+        Context(context),
+        Name(name)
+    {
+
+    }
+
+    bool operator< (cmCMP0054Id const& id) const
+    {
+      if(this->Context.FilePath != id.Context.FilePath)
+        return this->Context.FilePath < id.Context.FilePath;
+
+      if(this->Context.Line != id.Context.Line)
+        return this->Context.Line < id.Context.Line;
+
+      return this->Name < id.Name;
+    }
+
+    cmListFileContext Context;
+    std::string Name;
+  };
+
+  mutable std::set<cmCMP0054Id> CMP0054ReportedIds;
+
+  /**
+   * Determine if the given context, name pair has already been reported
+   * in context of CMP0054.
+   */
+  bool HasCMP0054AlreadyBeenReported(
+    cmListFileContext context, std::string name) const;
 
   /**
    * Add an auxiliary directory to the build.
