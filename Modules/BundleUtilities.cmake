@@ -527,21 +527,6 @@ function(get_bundle_keys app libs dirs keys_var)
     #
     get_bundle_all_executables("${bundle}" file_list)
 
-    # For each extra lib, accumulate a key as well and then also accumulate
-    # any of its prerequisites. (Extra libs are typically dynamically loaded
-    # plugins: libraries that are prerequisites for full runtime functionality
-    # but that do not show up in otool -L output...)
-    #
-    foreach(lib ${libs})
-      set_bundle_key_values(${keys_var} "${lib}" "${lib}" "${executable}" "${dirs}" 0)
-
-      set(prereqs "")
-      get_prerequisites("${lib}" prereqs 1 1 "${executable}" "${dirs}")
-      foreach(pr ${prereqs})
-        set_bundle_key_values(${keys_var} "${lib}" "${pr}" "${executable}" "${dirs}" 1)
-      endforeach()
-    endforeach()
-
     # For each executable found in the bundle, accumulate keys as we go.
     # The list of keys should be complete when all prerequisites of all
     # binaries in the bundle have been analyzed.
@@ -557,6 +542,21 @@ function(get_bundle_keys app libs dirs keys_var)
       get_prerequisites("${f}" prereqs 1 1 "${executable}" "${dirs}")
       foreach(pr ${prereqs})
         set_bundle_key_values(${keys_var} "${f}" "${pr}" "${executable}" "${dirs}" 1)
+      endforeach()
+    endforeach()
+
+    # For each extra lib, accumulate a key as well and then also accumulate
+    # any of its prerequisites. (Extra libs are typically dynamically loaded
+    # plugins: libraries that are prerequisites for full runtime functionality
+    # but that do not show up in otool -L output...)
+    #
+    foreach(lib ${libs})
+      set_bundle_key_values(${keys_var} "${lib}" "${lib}" "${executable}" "${dirs}" 0)
+
+      set(prereqs "")
+      get_prerequisites("${lib}" prereqs 1 1 "${executable}" "${dirs}")
+      foreach(pr ${prereqs})
+        set_bundle_key_values(${keys_var} "${lib}" "${pr}" "${executable}" "${dirs}" 1)
       endforeach()
     endforeach()
 
