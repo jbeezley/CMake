@@ -41,7 +41,7 @@
 # ::
 #
 #   GET_PREREQUISITES(<target> <prerequisites_var> <exclude_system> <recurse>
-#                     <exepath> <dirs>)
+#                     <executable> <dirs>)
 #
 # Get the list of shared library files required by <target>.  The list
 # in the variable named <prerequisites_var> should be empty on first
@@ -53,7 +53,7 @@
 # <exclude_system> must be 0 or 1 indicating whether to include or
 # exclude "system" prerequisites.  If <recurse> is set to 1 all
 # prerequisites will be found recursively, if set to 0 only direct
-# prerequisites are listed.  <exepath> is the path to the top level
+# prerequisites are listed.  <executable> is the path to the top level
 # executable used for @executable_path replacment on the Mac.  <dirs> is
 # a list of paths where libraries might be found: these paths are
 # searched first when a target without any path info is given.  Then
@@ -113,7 +113,7 @@
 #
 # ::
 #
-#   GP_RESOLVE_ITEM(<context> <item> <exepath> <dirs> <resolved_item_var>)
+#   GP_RESOLVE_ITEM(<context> <item> <executable> <dirs> <resolved_item_var>)
 #
 # Resolve an item into an existing full path file.
 #
@@ -122,13 +122,13 @@
 #
 # ::
 #
-#   GP_RESOLVED_FILE_TYPE(<original_file> <file> <exepath> <dirs> <type_var>)
+#   GP_RESOLVED_FILE_TYPE(<original_file> <file> <executable> <dirs> <type_var>)
 #
 # Return the type of <file> with respect to <original_file>.  String
 # describing type of prerequisite is returned in variable named
 # <type_var>.
 #
-# Use <exepath> and <dirs> if necessary to resolve non-absolute <file>
+# Use <executable> and <dirs> if necessary to resolve non-absolute <file>
 # values -- but only for non-embedded items.
 #
 # Possible types are:
@@ -318,9 +318,11 @@ function(gp_item_default_embedded_path item default_embedded_path_var)
 endfunction()
 
 
-function(gp_resolve_item context item exepath dirs resolved_item_var)
+function(gp_resolve_item context item executable dirs resolved_item_var)
   set(resolved 0)
   set(resolved_item "${item}")
+
+  get_filename_component(exepath "${executable}" PATH)
 
   # Is it already resolved?
   #
@@ -331,7 +333,7 @@ function(gp_resolve_item context item exepath dirs resolved_item_var)
   if(NOT resolved)
     if(item MATCHES "^@executable_path")
       #
-      # @executable_path references are assumed relative to exepath
+      # @executable_path references are assumed relative to executable
       #
       string(REPLACE "@executable_path" "${exepath}" ri "${item}")
       get_filename_component(ri "${ri}" ABSOLUTE)
@@ -374,10 +376,11 @@ function(gp_resolve_item context item exepath dirs resolved_item_var)
       #
       string(REPLACE "@rpath/" "" norpath_item "${item}")
 
+      get_item_key("${executable}" key)
       set(ri "ri-NOTFOUND")
-      find_file(ri "${norpath_item}" ${exepath} ${dirs} NO_DEFAULT_PATH)
+      find_file(ri "${norpath_item}" ${dirs} ${${key}_RPATHS} NO_DEFAULT_PATH)
       if(ri)
-        #message(STATUS "info: 'find_file' in exepath/dirs (${ri})")
+        #message(STATUS "info: 'find_file' in exepath/rpaths/dirs (${ri})")
         set(resolved 1)
         set(resolved_item "${ri}")
         set(ri "ri-NOTFOUND")
@@ -436,7 +439,7 @@ function(gp_resolve_item context item exepath dirs resolved_item_var)
   # by whatever logic they choose:
   #
   if(COMMAND gp_resolve_item_override)
-    gp_resolve_item_override("${context}" "${item}" "${exepath}" "${dirs}" resolved_item resolved)
+    gp_resolve_item_override("${context}" "${item}" "${executable}" "${dirs}" resolved_item resolved)
   endif()
 
   if(NOT resolved)
@@ -459,7 +462,7 @@ warning: cannot resolve item '${item}'
 #
 #    context='${context}'
 #    item='${item}'
-#    exepath='${exepath}'
+#    executable='${executable}'
 #    dirs='${dirs}'
 #    resolved_item_var='${resolved_item_var}'
 #******************************************************************************
@@ -470,7 +473,7 @@ warning: cannot resolve item '${item}'
 endfunction()
 
 
-function(gp_resolved_file_type original_file file exepath dirs type_var)
+function(gp_resolved_file_type original_file file executable dirs type_var)
   #message(STATUS "**")
 
   if(NOT IS_ABSOLUTE "${original_file}")
@@ -489,7 +492,7 @@ function(gp_resolved_file_type original_file file exepath dirs type_var)
 
   if(NOT is_embedded)
     if(NOT IS_ABSOLUTE "${file}")
-      gp_resolve_item("${original_file}" "${file}" "${exepath}" "${dirs}" resolved_file)
+      gp_resolve_item("${original_file}" "${file}" "${executable}" "${dirs}" resolved_file)
     endif()
 
     string(TOLOWER "${original_file}" original_lower)
@@ -595,21 +598,19 @@ function(gp_resolved_file_type original_file file exepath dirs type_var)
 endfunction()
 
 
-function(gp_file_type original_file file type_var)
+function(gp_file_type original_file file executable type_var)
   if(NOT IS_ABSOLUTE "${original_file}")
     message(STATUS "warning: gp_file_type expects absolute full path for first arg original_file")
   endif()
 
-  get_filename_component(exepath "${original_file}" PATH)
-
   set(type "")
-  gp_resolved_file_type("${original_file}" "${file}" "${exepath}" "" type)
+  gp_resolved_file_type("${original_file}" "${file}" "${executable}" "" type)
 
   set(${type_var} "${type}" PARENT_SCOPE)
 endfunction()
 
 
-function(get_prerequisites target prerequisites_var exclude_system recurse exepath dirs)
+function(get_prerequisites target prerequisites_var exclude_system recurse executable dirs)
   set(verbose 0)
   set(eol_char "E")
 
@@ -738,6 +739,7 @@ function(get_prerequisites target prerequisites_var exclude_system recurse exepa
 
   if("${gp_tool}" STREQUAL "ldd")
     set(old_ld_env "$ENV{LD_LIBRARY_PATH}")
+    get_filename_component(exepath "${executable}" PATH)
     set(new_ld_env "${exepath}")
     foreach(dir ${dirs})
       set(new_ld_env "${new_ld_env}:${dir}")
@@ -834,7 +836,7 @@ function(get_prerequisites target prerequisites_var exclude_system recurse exepa
 
     if(add_item AND ${exclude_system})
       set(type "")
-      gp_resolved_file_type("${target}" "${item}" "${exepath}" "${dirs}" type)
+      gp_resolved_file_type("${target}" "${item}" "${executable}" "${dirs}" type)
 
       if("${type}" STREQUAL "system")
         set(add_item 0)
@@ -855,7 +857,7 @@ function(get_prerequisites target prerequisites_var exclude_system recurse exepa
         # that the analysis tools can simply accept it as input.
         #
         if(NOT list_length_before_append EQUAL list_length_after_append)
-          gp_resolve_item("${target}" "${item}" "${exepath}" "${dirs}" resolved_item)
+          gp_resolve_item("${target}" "${item}" "${executable}" "${dirs}" resolved_item)
           set(unseen_prereqs ${unseen_prereqs} "${resolved_item}")
         endif()
       endif()
@@ -874,7 +876,7 @@ function(get_prerequisites target prerequisites_var exclude_system recurse exepa
   if(${recurse})
     set(more_inputs ${unseen_prereqs})
     foreach(input ${more_inputs})
-      get_prerequisites("${input}" ${prerequisites_var} ${exclude_system} ${recurse} "${exepath}" "${dirs}")
+      get_prerequisites("${input}" ${prerequisites_var} ${exclude_system} ${recurse} "${executable}" "${dirs}")
     endforeach()
   endif()
 
@@ -911,7 +913,7 @@ function(list_prerequisites target)
   get_filename_component(exepath "${target}" PATH)
 
   set(prereqs "")
-  get_prerequisites("${target}" prereqs ${exclude_system} ${all} "${exepath}" "")
+  get_prerequisites("${target}" prereqs ${exclude_system} ${all} "${target}" "")
 
   if(print_target)
     message(STATUS "File '${target}' depends on:")
@@ -925,7 +927,7 @@ function(list_prerequisites target)
     endif()
 
     if(print_prerequisite_type)
-      gp_file_type("${target}" "${d}" type)
+      gp_file_type("${target}" "${d}" "" type)
       set(type_str " (${type})")
     endif()
 
