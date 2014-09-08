@@ -3590,6 +3590,7 @@ int cmMakefile::TryCompile(const std::string& srcdir,
   cm.SetHomeOutputDirectory(bindir);
   cm.SetStartDirectory(srcdir);
   cm.SetStartOutputDirectory(bindir);
+  cm.SetGeneratorPlatform(this->GetCMakeInstance()->GetGeneratorPlatform());
   cm.SetGeneratorToolset(this->GetCMakeInstance()->GetGeneratorToolset());
   cm.LoadCache();
   if(!gg->IsMultiConfig())
