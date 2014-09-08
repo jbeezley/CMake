@@ -4,7 +4,7 @@ CMake Warning \(dev\) at CMP0054-keywords-WARN.cmake:1 \(if\):
   details.  Use the cmake_policy command to set the policy and suppress this
   warning.
 
-  Quoted keywords like 'NOT' are no longer interpreted as keywords.
+  Quoted keywords like "NOT" are no longer interpreted as keywords.
 Call Stack \(most recent call first\):
   CMakeLists.txt:3 \(include\)
 This warning is for project developers.  Use -Wno-dev to suppress it.

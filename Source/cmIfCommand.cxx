@@ -242,14 +242,14 @@ namespace
         case cmPolicies::WARN:
           {
           bool hasBeenReported = mf->HasCMP0054AlreadyBeenReported(
-            mf->GetBacktrace()[0], argument.GetValue());
+            mf->GetBacktrace()[0]);
 
           if(!hasBeenReported)
             {
             e << (mf->GetPolicies()->GetPolicyWarning(
               cmPolicies::CMP0054)) << "\n";
-            e << "Quoted keywords like '" << argument.GetValue() <<
-              "' are no longer interpreted as keywords.";
+            e << "Quoted keywords like \"" << argument.GetValue() <<
+              "\" are no longer interpreted as keywords.";
 
             mf->IssueMessage(cmake::AUTHOR_WARNING, e.str());
             }
@@ -972,14 +972,14 @@ const char* cmIfCommand::GetDefinitionIfUnquoted(
       case cmPolicies::WARN:
         {
         bool hasBeenReported = mf->HasCMP0054AlreadyBeenReported(
-          mf->GetBacktrace()[0], argument.GetValue());
+          mf->GetBacktrace()[0]);
 
         if(!hasBeenReported)
           {
           e << (mf->GetPolicies()->GetPolicyWarning(
             cmPolicies::CMP0054)) << "\n";
-          e << "Quoted variables like '" << argument.GetValue() <<
-            "' are no longer dereferenced.";
+          e << "Quoted variables like \"" << argument.GetValue() <<
+            "\" are no longer dereferenced.";
 
           mf->IssueMessage(cmake::AUTHOR_WARNING, e.str());
           }

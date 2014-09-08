@@ -380,9 +380,8 @@ public:
 
   struct cmCMP0054Id
   {
-    cmCMP0054Id(cmListFileContext const& context, std::string const& name):
-        Context(context),
-        Name(name)
+    cmCMP0054Id(cmListFileContext const& context):
+        Context(context)
     {
 
     }
@@ -392,14 +391,10 @@ public:
       if(this->Context.FilePath != id.Context.FilePath)
         return this->Context.FilePath < id.Context.FilePath;
 
-      if(this->Context.Line != id.Context.Line)
-        return this->Context.Line < id.Context.Line;
-
-      return this->Name < id.Name;
+      return this->Context.Line < id.Context.Line;
     }
 
     cmListFileContext Context;
-    std::string Name;
   };
 
   mutable std::set<cmCMP0054Id> CMP0054ReportedIds;
@@ -409,7 +404,7 @@ public:
    * in context of CMP0054.
    */
   bool HasCMP0054AlreadyBeenReported(
-    cmListFileContext context, std::string name) const;
+    cmListFileContext context) const;
 
   /**
    * Add an auxiliary directory to the build.
