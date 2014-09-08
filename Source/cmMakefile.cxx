@@ -4999,9 +4999,9 @@ cmPolicies *cmMakefile::GetPolicies() const
 
 //----------------------------------------------------------------------------
 bool cmMakefile::HasCMP0054AlreadyBeenReported(
-  cmListFileContext context, std::string name) const
+  cmListFileContext context) const
 {
-  cmCMP0054Id id(context, name);
+  cmCMP0054Id id(context);
 
   bool alreadyReported =
     this->CMP0054ReportedIds.find(id) != this->CMP0054ReportedIds.end();

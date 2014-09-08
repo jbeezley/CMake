@@ -4,7 +4,7 @@ CMake Warning \(dev\) at CMP0054-duplicate-warnings.cmake:4 \(if\):
   details.  Use the cmake_policy command to set the policy and suppress this
   warning.
 
-  Quoted variables like 'FOO' are no longer dereferenced.
+  Quoted variables like "FOO" are no longer dereferenced.
 Call Stack \(most recent call first\):
   CMP0054-duplicate-warnings.cmake:8 \(generate_warning\)
   CMakeLists.txt:3 \(include\)
@@ -16,7 +16,7 @@ CMake Warning \(dev\) at CMP0054-duplicate-warnings.cmake:11 \(if\):
   details.  Use the cmake_policy command to set the policy and suppress this
   warning.
 
-  Quoted variables like 'FOO' are no longer dereferenced.
+  Quoted variables like "FOO" are no longer dereferenced.
 Call Stack \(most recent call first\):
   CMakeLists.txt:3 \(include\)
 This warning is for project developers.  Use -Wno-dev to suppress it.
