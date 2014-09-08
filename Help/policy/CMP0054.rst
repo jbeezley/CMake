@@ -1,11 +1,11 @@
 CMP0054
 -------
 
-Only interpret if() arguments as variables or keywords when unquoted.
+Only interpret :command:`if` arguments as variables or keywords when unquoted.
 
-CMake 3.1 no longer dereferences variables or interprets keywords in if()
-arguments when they are quoted :ref:`Quoted Argument` or
-bracketed :ref:`Bracket Argument`.
+CMake 3.1 and above no longer dereference variables or interpret keywords
+in an :command:`if` command argument when it is a :ref:`Quoted Argument`
+or a :ref:`Bracket Argument`.
 
 The ``OLD`` behavior for this policy is to dereference variables and
 interpret keywords even if they are quoted or bracketed.

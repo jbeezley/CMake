@@ -201,6 +201,7 @@ above-documented signature accepts ``<variable|string>``:
   such, otherwise they are assumed to be variables and are dereferenced.
 
 To prevent ambiguity, potential variable or keyword names can be
-quoted or bracketed.  A quoted or bracketed variable or keyword will be
-interpreted as a string and not dereferenced or interpreted.
-See CMake Policy :policy:`CMP0054`.
+specified in a :ref:`Quoted Argument` or a :ref:`Bracket Argument`.
+A quoted or bracketed variable or keyword will be interpreted as a
+string and not dereferenced or interpreted.
+See policy :policy:`CMP0054`.
