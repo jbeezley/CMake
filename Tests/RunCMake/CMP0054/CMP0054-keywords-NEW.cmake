@@ -17,6 +17,8 @@ assert("IS_DIRECTORY")
 assert("IS_SYMLINK")
 assert("IS_ABSOLUTE")
 assert("DEFINED")
+assert("(")
+assert(")")
 
 if("NOT" 1)
   message(FATAL_ERROR "[\"NOT\" 1] evaluated true")
