@@ -927,7 +927,7 @@ bool cmFindPackageCommand::FindConfig()
 //----------------------------------------------------------------------------
 bool cmFindPackageCommand::FindPrefixedConfig()
 {
-  const std::vector<std::string>& prefixes = this->SearchPaths;
+  std::vector<std::string>& prefixes = this->SearchPaths;
   for(std::vector<std::string>::const_iterator pi = prefixes.begin();
       pi != prefixes.end(); ++pi)
     {
@@ -942,7 +942,7 @@ bool cmFindPackageCommand::FindPrefixedConfig()
 //----------------------------------------------------------------------------
 bool cmFindPackageCommand::FindFrameworkConfig()
 {
-  const std::vector<std::string>& prefixes = this->SearchPaths;
+  std::vector<std::string>& prefixes = this->SearchPaths;
   for(std::vector<std::string>::const_iterator i = prefixes.begin();
       i != prefixes.end(); ++i)
     {
@@ -957,7 +957,7 @@ bool cmFindPackageCommand::FindFrameworkConfig()
 //----------------------------------------------------------------------------
 bool cmFindPackageCommand::FindAppBundleConfig()
 {
-  const std::vector<std::string>& prefixes = this->SearchPaths;
+  std::vector<std::string>& prefixes = this->SearchPaths;
   for(std::vector<std::string>::const_iterator i = prefixes.begin();
       i != prefixes.end(); ++i)
     {
@@ -1442,16 +1442,14 @@ void cmFindPackageCommand::AddPrefixesCMakeSystemVariable()
 void cmFindPackageCommand::AddPrefixesUserGuess()
 {
   // Add guesses specified by the caller.
-  this->AddPathsInternal(this->UserPaths, CMakePath,
-                         this->FindRootPathMode != RootPathModeSystemOnly);
+  this->AddPathsInternal(this->UserPaths, CMakePath);
 }
 
 //----------------------------------------------------------------------------
 void cmFindPackageCommand::AddPrefixesUserHints()
 {
   // Add hints specified by the caller.
-  this->AddPathsInternal(this->UserHints, CMakePath,
-                         this->FindRootPathMode != RootPathModeSystemOnly);
+  this->AddPathsInternal(this->UserHints, CMakePath);
 }
 
 //----------------------------------------------------------------------------
