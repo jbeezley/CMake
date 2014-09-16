@@ -53,11 +53,11 @@ private:
   void ParseCppFile(const std::string& absFilename,
                     const std::vector<std::string>& headerExtensions,
                     std::map<std::string, std::string>& includedMocs,
-                          std::map<std::string, std::string>& includedUis);
+                          std::map<std::string, std::vector<std::string> >& includedUis);
   void StrictParseCppFile(const std::string& absFilename,
                           const std::vector<std::string>& headerExtensions,
                           std::map<std::string, std::string>& includedMocs,
-                          std::map<std::string, std::string>& includedUis);
+                          std::map<std::string, std::vector<std::string> >& includedUis);
   void SearchHeadersForCppFile(const std::string& absFilename,
                               const std::vector<std::string>& headerExtensions,
                               std::set<std::string>& absHeaders);
@@ -65,14 +65,14 @@ private:
   void ParseHeaders(const std::set<std::string>& absHeaders,
                     const std::map<std::string, std::string>& includedMocs,
                     std::map<std::string, std::string>& notIncludedMocs,
-                          std::map<std::string, std::string>& includedUis);
+                          std::map<std::string, std::vector<std::string> >& includedUis);
 
   void ParseForUic(const std::string& fileName,
                    const std::string& contentsString,
-                   std::map<std::string, std::string>& includedUis);
+                   std::map<std::string, std::vector<std::string> >& includedUis);
 
   void ParseForUic(const std::string& fileName,
-                   std::map<std::string, std::string>& includedUis);
+                   std::map<std::string, std::vector<std::string> >& includedUis);
 
   void Init();
 
