@@ -113,3 +113,57 @@ set_target_properties(no_link_language PROPERTIES AUTOMOC TRUE)
 qtx_wrap_cpp(uicOnlyMoc sub/uiconly.h)
 add_executable(uiconly sub/uiconly.cpp ${uicOnlyMoc})
 target_link_libraries(uiconly ${QT_LIBRARIES})
+
+if (NOT CMAKE_GENERATOR STREQUAL Ninja)
+
+  try_compile(RCC_DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+    "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends"
+    autorcc_depends
+    CMAKE_FLAGS "-DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}" "-DQT_TEST_VERSION=${QT_TEST_VERSION}"
+    OUTPUT_VARIABLE output
+  )
+  if (NOT RCC_DEPENDS)
+    message(SEND_ERROR "Initial build of autorcc_depends failed. Output: ${output}")
+  endif()
+
+  set(info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file.txt")
+  if (NOT EXISTS ${info_file})
+    unset(info_file)
+    foreach(_config ${CMAKE_BUILD_TYPE} ${CMAKE_CONFIGURATION_TYPES})
+      set(_info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file_${_config}.txt")
+      if (EXISTS ${_info_file})
+        set(info_file ${_info_file})
+        break()
+      else()
+        message("Does not exist: ${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file_${_config}.txt")
+      endif()
+    endforeach()
+    if (NOT info_file)
+      file(GLOB info_files "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file*" )
+      message("info_files glob: ${info_files}")
+      message(SEND_ERROR "No valid info_file found!")
+    endif()
+  endif()
+
+  file(STRINGS "${info_file}" qrc_files)
+
+  list(GET qrc_files 0 qrc_file1)
+
+  set(timeformat "%Y%j%H%M%S")
+
+  file(TIMESTAMP "${qrc_file1}" file1_before "${timeformat}")
+
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends/res1_input.txt")
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1) # Ensure that the timestamp will change.
+
+  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+  )
+
+  file(TIMESTAMP "${qrc_file1}" file1_step1 "${timeformat}")
+
+  if (NOT file1_step1 GREATER file1_before)
+    message(SEND_ERROR "file1 (${qrc_file1}) should have changed in the first step!")
+  endif()
+endif()
