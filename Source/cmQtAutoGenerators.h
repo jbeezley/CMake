@@ -60,7 +60,7 @@ private:
               std::map<std::string, std::vector<std::string> >& includedUis);
   void SearchHeadersForCppFile(const std::string& absFilename,
                               const std::vector<std::string>& headerExtensions,
-                              std::set<std::string>& absHeaders);`
+                              std::set<std::string>& absHeaders);
 
   void ParseHeaders(const std::set<std::string>& absHeaders,
               const std::map<std::string, std::string>& includedMocs,
