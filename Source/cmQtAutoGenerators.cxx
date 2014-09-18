@@ -1462,9 +1462,9 @@ bool cmQtAutoGenerators::RunAutogen(cmMakefile* makefile)
 
 
 void cmQtAutoGenerators::ParseCppFile(const std::string& absFilename,
-                              const std::vector<std::string>& headerExtensions,
-                              std::map<std::string, std::string>& includedMocs,
-                              std::map<std::string, std::vector<std::string> > &includedUis)
+                const std::vector<std::string>& headerExtensions,
+                std::map<std::string, std::string>& includedMocs,
+                std::map<std::string, std::vector<std::string> > &includedUis)
 {
   cmsys::RegularExpression mocIncludeRegExp(
               "[\n][ \t]*#[ \t]*include[ \t]+"
@@ -1650,9 +1650,9 @@ void cmQtAutoGenerators::ParseCppFile(const std::string& absFilename,
 
 
 void cmQtAutoGenerators::StrictParseCppFile(const std::string& absFilename,
-                              const std::vector<std::string>& headerExtensions,
-                              std::map<std::string, std::string>& includedMocs,
-                              std::map<std::string, std::vector<std::string> >& includedUis)
+                const std::vector<std::string>& headerExtensions,
+                std::map<std::string, std::string>& includedMocs,
+                std::map<std::string, std::vector<std::string> >& includedUis)
 {
   cmsys::RegularExpression mocIncludeRegExp(
               "[\n][ \t]*#[ \t]*include[ \t]+"
@@ -1770,7 +1770,7 @@ void cmQtAutoGenerators::StrictParseCppFile(const std::string& absFilename,
 
 
 void cmQtAutoGenerators::ParseForUic(const std::string& absFilename,
-                              std::map<std::string, std::vector<std::string> >& includedUis)
+                std::map<std::string, std::vector<std::string> >& includedUis)
 {
   if (this->UicExecutable.empty())
     {
@@ -1788,8 +1788,8 @@ void cmQtAutoGenerators::ParseForUic(const std::string& absFilename,
 
 
 void cmQtAutoGenerators::ParseForUic(const std::string& absFilename,
-                                     const std::string& contentsString,
-                              std::map<std::string, std::vector<std::string> >& includedUis)
+                const std::string& contentsString,
+                std::map<std::string, std::vector<std::string> >& includedUis)
 {
   if (this->UicExecutable.empty())
     {
@@ -1865,9 +1865,9 @@ cmQtAutoGenerators::SearchHeadersForCppFile(const std::string& absFilename,
 
 
 void cmQtAutoGenerators::ParseHeaders(const std::set<std::string>& absHeaders,
-                        const std::map<std::string, std::string>& includedMocs,
-                        std::map<std::string, std::string>& notIncludedMocs,
-                        std::map<std::string, std::vector<std::string> >& includedUis)
+                const std::map<std::string, std::string>& includedMocs,
+                std::map<std::string, std::string>& notIncludedMocs,
+                std::map<std::string, std::vector<std::string> >& includedUis)
 {
   for(std::set<std::string>::const_iterator hIt=absHeaders.begin();
       hIt!=absHeaders.end();
