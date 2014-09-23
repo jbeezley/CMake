@@ -121,7 +121,23 @@ try_compile(RCC_DEPENDS
   CMAKE_FLAGS "-DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}" "-DQT_TEST_VERSION=${QT_TEST_VERSION}"
   OUTPUT_VARIABLE output
 )
-file(STRINGS "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file.txt" qrc_files)
+
+set(info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file.txt")
+if (NOT EXISTS ${info_file})
+  unset(info_file)
+  foreach(_config ${CMAKE_CONFIGURATION_TYPES})
+    set(_info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file_${config}.txt")
+    if (EXISTS ${_info_file})
+      set(info_file ${_info_file})
+      break()
+    endif()
+  endforeach()
+  if (NOT info_file)
+    message(SEND_ERROR "No valid info_file found!")
+  endif()
+endif()
+
+file(STRINGS "${info_file}" qrc_files)
 
 list(GET qrc_files 0 qrc_file1)
 list(GET qrc_files 1 qrc_file2)
