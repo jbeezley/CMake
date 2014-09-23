@@ -35,6 +35,6 @@ add_executable(test_res2
 target_link_libraries(test_res2 ${QT_CORE_TARGET})
 
 file(GENERATE
-  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/info_file$<$<CONFIG>>:_$<CONFIG>>.txt"
+  OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/info_file$<$<BOOL:$<CONFIG>>:_$<CONFIG>>.txt"
   CONTENT "$<TARGET_FILE:test_res1>\n$<TARGET_FILE:test_res2>\n"
 )
