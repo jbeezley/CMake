@@ -114,69 +114,96 @@ qtx_wrap_cpp(uicOnlyMoc sub/uiconly.h)
 add_executable(uiconly sub/uiconly.cpp ${uicOnlyMoc})
 target_link_libraries(uiconly ${QT_LIBRARIES})
 
-try_compile(RCC_DEPENDS
-  "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
-  "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends"
-  autorcc_depends
-  CMAKE_FLAGS "-DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}" "-DQT_TEST_VERSION=${QT_TEST_VERSION}"
-  OUTPUT_VARIABLE output
-)
+if (NOT CMAKE_GENERATOR STREQUAL Ninja)
 
-set(info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file.txt")
-if (NOT EXISTS ${info_file})
-  unset(info_file)
-  foreach(_config ${CMAKE_CONFIGURATION_TYPES})
-    set(_info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file_${config}.txt")
-    if (EXISTS ${_info_file})
-      set(info_file ${_info_file})
-      break()
-    endif()
-  endforeach()
-  if (NOT info_file)
-    message(SEND_ERROR "No valid info_file found!")
+  try_compile(RCC_DEPENDS
+    "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+    "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends"
+    autorcc_depends
+    CMAKE_FLAGS "-DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}" "-DQT_TEST_VERSION=${QT_TEST_VERSION}"
+    OUTPUT_VARIABLE output
+  )
+  if (NOT RCC_DEPENDS)
+    message(SEND_ERROR "Initial build of autorcc_depends failed. Output: ${output}")
   endif()
-endif()
 
-file(STRINGS "${info_file}" qrc_files)
+  set(info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file.txt")
+  if (NOT EXISTS ${info_file})
+    unset(info_file)
+    foreach(_config ${CMAKE_CONFIGURATION_TYPES})
+      set(_info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file_${config}.txt")
+      if (EXISTS ${_info_file})
+        set(info_file ${_info_file})
+        break()
+      endif()
+    endforeach()
+    if (NOT info_file)
+      file(GLOB info_files "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file*" )
+      message("info_files glob: ${info_files}")
+      message(SEND_ERROR "No valid info_file found!")
+    endif()
+  endif()
 
-list(GET qrc_files 0 qrc_file1)
-list(GET qrc_files 1 qrc_file2)
+  file(STRINGS "${info_file}" qrc_files)
 
-set(timeformat "%Y%j%H%M%S")
+  list(GET qrc_files 0 qrc_file1)
+  list(GET qrc_files 1 qrc_file2)
 
-file(TIMESTAMP "${qrc_file1}" file1_before "${timeformat}")
-file(TIMESTAMP "${qrc_file2}" file2_before "${timeformat}")
+  set(timeformat "%Y%j%H%M%S")
 
-execute_process(COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends/res1_input.txt")
-execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1) # Ensure that the timestamp will change.
+  file(TIMESTAMP "${qrc_file1}" file1_before "${timeformat}")
+  file(TIMESTAMP "${qrc_file2}" file2_before "${timeformat}")
 
-execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
-)
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends/res1_input.txt")
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1) # Ensure that the timestamp will change.
 
-file(TIMESTAMP "${qrc_file1}" file1_step1 "${timeformat}")
-file(TIMESTAMP "${qrc_file2}" file2_step1 "${timeformat}")
+  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+  )
 
-if (NOT file2_step1 STREQUAL file2_before)
-  message(SEND_ERROR "file2 (${qrc_file2}) should not have changed in the first step!")
-endif()
-if (NOT file1_step1 GREATER file1_before)
-  message(SEND_ERROR "file1 (${qrc_file1}) should have changed in the first step!")
-endif()
+  file(TIMESTAMP "${qrc_file1}" file1_step1 "${timeformat}")
+  file(TIMESTAMP "${qrc_file2}" file2_step1 "${timeformat}")
 
-execute_process(COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends/res2_input.txt")
-execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1)
+  if (NOT file2_step1 STREQUAL file2_before)
+    message(SEND_ERROR "file2 (${qrc_file2}) should not have changed in the first step!")
+  endif()
+  if (NOT file1_step1 GREATER file1_before)
+    message(SEND_ERROR "file1 (${qrc_file1}) should have changed in the first step!")
+  endif()
 
-execute_process(COMMAND "${CMAKE_COMMAND}" --build .
-  WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
-)
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_SOURCE_DIR}/autorcc_depends/res2_input.txt")
+  execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1)
 
-file(TIMESTAMP "${qrc_file1}" file1_step2 "${timeformat}")
-file(TIMESTAMP "${qrc_file2}" file2_step2 "${timeformat}")
+  execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+  )
 
-if (NOT file1_step2 STREQUAL file1_step1)
-  message(SEND_ERROR "file1 (${qrc_file1}) should not have changed in the second step!")
-endif()
-if (NOT file2_step2 GREATER file2_before)
-  message(SEND_ERROR "file2 (${qrc_file2}) should have changed in the second step!")
+  file(TIMESTAMP "${qrc_file1}" file1_step2 "${timeformat}")
+  file(TIMESTAMP "${qrc_file2}" file2_step2 "${timeformat}")
+
+  if (NOT file1_step2 STREQUAL file1_step1)
+    message("file1 timestamp after second build: ${file1_step2}")
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1)
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+    )
+    file(TIMESTAMP "${qrc_file1}" file1_step3 "${timeformat}")
+
+    message("file1 timestamp after third build: ${file1_step3}")
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1)
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+    )
+    file(TIMESTAMP "${qrc_file1}" file1_step4 "${timeformat}")
+
+    message("file1 timestamp after fourth build: ${file1_step4}")
+
+    message(SEND_ERROR "file1 (${qrc_file1}) should not have changed in the second step!")
+  endif()
+  if (NOT file2_step2 GREATER file2_before)
+    message(SEND_ERROR "file2 (${qrc_file2}) should have changed in the second step!")
+  endif()
+
 endif()
