@@ -1200,6 +1200,28 @@ void cmVisualStudio10TargetGenerator::WriteExtraSource(cmSourceFile const* sf)
     {
     tool = "XML";
     }
+  if(this->NsightTegra)
+    {
+    // Nsight Tegra needs specific file types to check up-to-dateness.
+    std::string name =
+      cmSystemTools::LowerCase(sf->GetLocation().GetName());
+    if(name == "androidmanifest.xml" ||
+       name == "build.xml" ||
+       name == "proguard.cfg" ||
+       name == "proguard-project.txt" ||
+       ext == "properties")
+      {
+      tool = "AndroidBuild";
+      }
+    else if(ext == "java")
+      {
+      tool = "JCompile";
+      }
+    else if(ext == "asm" || ext == "s")
+      {
+      tool = "ClCompile";
+      }
+    }
 
   std::string deployContent;
   if(this->GlobalGenerator->TargetsWindowsPhone() ||
