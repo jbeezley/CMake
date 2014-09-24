@@ -123,6 +123,9 @@ if (NOT CMAKE_GENERATOR STREQUAL Ninja)
     CMAKE_FLAGS "-DQT_QMAKE_EXECUTABLE:FILEPATH=${QT_QMAKE_EXECUTABLE}" "-DQT_TEST_VERSION=${QT_TEST_VERSION}"
     OUTPUT_VARIABLE output
   )
+  if (NOT RCC_DEPENDS)
+    message(SEND_ERROR "Initial build of autorcc_depends failed. Output: ${output}")
+  endif()
 
   set(info_file "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends/info_file.txt")
   if (NOT EXISTS ${info_file})
