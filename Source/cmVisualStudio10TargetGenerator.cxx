@@ -2019,7 +2019,7 @@ cmVisualStudio10TargetGenerator::WriteLibOptions(std::string const& config)
 
 //----------------------------------------------------------------------------
 void cmVisualStudio10TargetGenerator::WriteAntBuildOptions(
-  std::string const& config)
+  std::string const&)
 {
   // Look through the sources for AndroidManifest.xml and use
   // its location as the root source directory.
