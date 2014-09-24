@@ -1180,7 +1180,7 @@ void cmVisualStudio10TargetGenerator::WriteExtraSource(cmSourceFile const* sf)
   bool toolHasSettings = false;
   std::string tool = "None";
   std::string shaderType;
-  std::string const& ext = sf->GetExtension();
+  std::string ext = cmSystemTools::LowerCase(sf->GetExtension());
   if(ext == "hlsl")
     {
     tool = "FXCompile";
@@ -1199,6 +1199,28 @@ void cmVisualStudio10TargetGenerator::WriteExtraSource(cmSourceFile const* sf)
   else if(ext == "xml")
     {
     tool = "XML";
+    }
+  if(this->NsightTegra)
+    {
+    // Nsight Tegra needs specific file types to check up-to-dateness.
+    std::string name =
+      cmSystemTools::LowerCase(sf->GetLocation().GetName());
+    if(name == "androidmanifest.xml" ||
+       name == "build.xml" ||
+       name == "proguard.cfg" ||
+       name == "proguard-project.txt" ||
+       ext == "properties")
+      {
+      tool = "AndroidBuild";
+      }
+    else if(ext == "java")
+      {
+      tool = "JCompile";
+      }
+    else if(ext == "asm" || ext == "s")
+      {
+      tool = "ClCompile";
+      }
     }
 
   std::string deployContent;
@@ -2023,7 +2045,7 @@ cmVisualStudio10TargetGenerator::WriteLibOptions(std::string const& config)
 
 //----------------------------------------------------------------------------
 void cmVisualStudio10TargetGenerator::WriteAntBuildOptions(
-  std::string const& config)
+  std::string const&)
 {
   // Look through the sources for AndroidManifest.xml and use
   // its location as the root source directory.
