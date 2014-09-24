@@ -182,6 +182,24 @@ if (NOT CMAKE_GENERATOR STREQUAL Ninja)
   file(TIMESTAMP "${qrc_file2}" file2_step2 "${timeformat}")
 
   if (NOT file1_step2 STREQUAL file1_step1)
+    message("file1 timestamp after second build: ${file1_step2}")
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1)
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+    )
+    file(TIMESTAMP "${qrc_file1}" file1_step3 "${timeformat}")
+
+    message("file1 timestamp after third build: ${file1_step3}")
+
+    execute_process(COMMAND "${CMAKE_COMMAND}" -E sleep 1)
+    execute_process(COMMAND "${CMAKE_COMMAND}" --build .
+      WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/autorcc_depends"
+    )
+    file(TIMESTAMP "${qrc_file1}" file1_step4 "${timeformat}")
+
+    message("file1 timestamp after fourth build: ${file1_step4}")
+
     message(SEND_ERROR "file1 (${qrc_file1}) should not have changed in the second step!")
   endif()
   if (NOT file2_step2 GREATER file2_before)
