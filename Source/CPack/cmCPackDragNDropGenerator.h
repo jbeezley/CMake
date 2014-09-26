@@ -39,6 +39,7 @@ protected:
   std::string
   GetComponentInstallDirNameSuffix(const std::string& componentName);
 
+  int SignPackage(const std::string& src_dir);
   int CreateDMG(const std::string& src_dir, const std::string& output_file);
 
   std::string InstallPrefix;
