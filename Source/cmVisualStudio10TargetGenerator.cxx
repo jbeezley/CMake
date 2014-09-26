@@ -1665,6 +1665,10 @@ void
 cmVisualStudio10TargetGenerator::
 OutputLinkIncremental(std::string const& configName)
 {
+  if(!this->MSTools)
+    {
+    return;
+    }
   // static libraries and things greater than modules do not need
   // to set this option
   if(this->Target->GetType() == cmTarget::STATIC_LIBRARY
