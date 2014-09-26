@@ -53,7 +53,7 @@ const char* cmCPackBundleGenerator::GetPackagingInstallPrefix()
 }
 
 //----------------------------------------------------------------------
-int cmCPackBundleGenerator::PackageFiles()
+int cmCPackBundleGenerator::ConstructAppBundle()
 {
 
   // Get required arguments ...
@@ -163,6 +163,22 @@ int cmCPackBundleGenerator::PackageFiles()
       }
 
     cmSystemTools::SetPermissions(command_target.str().c_str(), 0777);
+    }
+
+  return 1;
+}
+
+//----------------------------------------------------------------------
+int cmCPackBundleGenerator::PackageFiles()
+{
+  if(!this->ConstructAppBundle())
+    {
+    return 0;
+    }
+
+  if(!this->SignPackage(toplevel))
+    {
+    return 0;
     }
 
   return this->CreateDMG(toplevel, packageFileNames[0]);
