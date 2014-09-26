@@ -36,24 +36,6 @@
 #  background image is set. The background image is applied after applying the
 #  custom .DS_Store file.
 #
-# .. variable:: CPACK_APPLE_CERT_APP
-#
-#  The name of your Apple supplied code signing certificate for the application.
-#  The name usually takes the form "Developer ID Application: [Name]" or
-#  "3rd Party Mac Developer Application: [Name]". If this variable is not set
-#  the application will not be signed.
-#
-# .. variable:: CPACK_APPLE_ENTITLEMENTS
-#
-#  The name of the plist file that contains your apple entitlements for sandboxing
-#  your application. This file is required for submission to the Mac App Store.
-#
-# .. variable:: CPACK_APPLE_CODESIGN_FILES
-#
-#  A list of additional files that you wish to be signed. You do not need to
-#  list the main application folder, or the main executable. You should
-#  list any frameworks and plugins that are included in your app bundle.
-#
 # .. variable:: CPACK_COMMAND_HDIUTIL
 #
 #  Path to the hdiutil(1) command used to operate on disk image files on Mac
@@ -72,14 +54,6 @@
 #  Path to the Rez(1) command used to compile resources on Mac OS X. This
 #  variable can be used to override the automatically detected command (or
 #  specify its location if the auto-detection fails to find it.)
-#
-# .. variable:: CPACK_COMMAND_CODESIGN
-#
-#  Path to the codesign(1) command used to sign applications with an
-#  Apple cert. This variable can be used to override the automatically
-#  detected command (or specify its location if the auto-detection fails
-#  to find it.)
-#
 
 #=============================================================================
 # Copyright 2006-2012 Kitware, Inc.
