@@ -355,17 +355,20 @@ bool cmQtAutoGenerators::InitializeAutogenTarget(cmTarget* target)
         {
 
         std::string entriesList;
-        if (qtMajorVersion == "5")
+        if (!cmSystemTools::IsOn(sf->GetPropertyForUser("GENERATED")))
           {
-          entriesList = this->ListQt5RccInputs(sf, target, depends);
-          }
-        else
-          {
-          entriesList = this->ListQt4RccInputs(sf, depends);
-          }
-        if (entriesList.empty())
-          {
-          return false;
+          if (qtMajorVersion == "5")
+            {
+            entriesList = this->ListQt5RccInputs(sf, target, depends);
+            }
+          else
+            {
+            entriesList = this->ListQt4RccInputs(sf, depends);
+            }
+          if (entriesList.empty())
+            {
+            return false;
+            }
           }
 
         qrcInputs += qrcInputsSep;
